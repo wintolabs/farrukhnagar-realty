@@ -5,14 +5,16 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 interface ViewPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function ViewPropertyPage({ params }: ViewPageProps) {
-  const property = await getPropertyById(params.id);
+  const { id } = await params;
+
+  const property = await getPropertyById(id);
   if (!property) return notFound();
 
-  const leads = await getLeadsByPropertyId(params.id);
+  const leads = await getLeadsByPropertyId(id);
 
   return (
     <main className="p-8 max-w-4xl mx-auto space-y-6">

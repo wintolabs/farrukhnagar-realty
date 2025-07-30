@@ -7,6 +7,7 @@ import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Analytics } from "@vercel/analytics/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function PublicLayout({
       <body className="font-sans">
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <Header />
-        <main className="pt-32">{children}</main>
+        <main className="pt-32">
+          {children} <Analytics />
+        </main>
         <Footer />
         <Toaster />
       </body>

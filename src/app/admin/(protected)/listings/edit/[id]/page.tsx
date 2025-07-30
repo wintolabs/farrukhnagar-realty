@@ -2,11 +2,13 @@ import EditPropertyClient from "@/components/admin/EditPropertyClient";
 import { getPropertyById } from "@/lib/firestore";
 
 interface EditPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditPropertyPage({ params }: EditPageProps) {
-  const property = await getPropertyById(params.id);
+  const { id } = await params;
+
+  const property = await getPropertyById(id);
 
   if (!property) {
     return <div className="p-8">Property not found.</div>;
