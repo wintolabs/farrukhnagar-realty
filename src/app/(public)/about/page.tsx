@@ -3,7 +3,6 @@ import {
   FileText,
   HeartHandshake,
   Home,
-  MapPin,
   Phone,
   ShieldCheck,
   Verified,
@@ -228,40 +227,27 @@ export default function AboutPage() {
           <div className="flex justify-center">
             <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md border border-gray-100">
               <div className="text-center">
-                <div className="relative inline-block mb-6">
+                <div className="relative w-40 h-40 mx-auto mb-6">
                   <Image
-                    src="/logo.png"
+                    src="/images/gaurav.jpeg"
                     alt="Gaurav Yadav"
-                    width={120}
-                    height={120}
-                    className="rounded-full border-4 border-white shadow-lg"
+                    fill
+                    className="rounded-full border-4 border-white shadow-lg object-cover"
                   />
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <div className="absolute bottom-2 right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
                     <Verified className="w-4 h-4 text-white" />
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   Gaurav Yadav
                 </h3>
-                <p className="text-emerald-600 font-semibold mb-4">
-                  Founder & Licensed Advocate
-                </p>
+                <p className="text-emerald-600 font-semibold mb-4">Founder</p>
                 <p className="text-gray-600 text-sm leading-relaxed mb-6">
                   With over 25 years of experience in Farrukhnagar&apos;s real
                   estate market, Gaurav has helped hundreds of families find
                   their dream homes and build lasting wealth through property
                   investment.
                 </p>
-                <div className="flex justify-center space-x-4 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    Farrukhnagar
-                  </div>
-                  <div className="flex items-center">
-                    <Award className="w-4 h-4 mr-1" />
-                    Licensed Advocate
-                  </div>
-                </div>
               </div>
             </div>
           </div>

@@ -9,7 +9,7 @@ export function WhyChooseUs() {
     },
     {
       image: "/images/whychooseus/2.jpg", // Professional photo of legal documents/team
-      stat: "20+",
+      stat: "25+",
       statLabel: "Years Experience",
     },
     {
@@ -25,7 +25,7 @@ export function WhyChooseUs() {
   ];
 
   return (
-    <section className="bg-white">
+    <section className="bg-white mt-10">
       <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-20">

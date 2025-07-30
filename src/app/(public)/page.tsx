@@ -1,4 +1,5 @@
 import ContactSection from "@/components/home/Contact";
+import DroneVideo from "@/components/home/DroneVideo";
 import { FeaturedListings } from "@/components/home/FeaturedListings";
 import Hero from "@/components/home/Hero";
 import ProcessSection from "@/components/home/ProcessSection";
@@ -14,16 +15,7 @@ export default async function Home() {
       <Hero />
       <ProcessSection />
       <FeaturedListings properties={properties} />
-      <section className="relative w-full py-0 md:py-8 overflow-hidden">
-        <video
-          className="w-full object-cover max-h-[680px] rounded-xl shadow-md"
-          src="/videos/drone-farrukhnagar.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-      </section>
+      <DroneVideo />
       <WhyChooseUs />
       <PropertyTypes />
       <ContactSection />
