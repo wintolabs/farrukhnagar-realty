@@ -10,7 +10,7 @@ interface DroneVideoSimpleProps {
 }
 
 export default function DroneVideoSimple({
-  videoSrc = "https://05z3nnmdtq.ufs.sh/f/iU5967clh2WvwSkgwszR2CbmBsD73j8JrZlSd5xIaHAT1qtO",
+  videoSrc = "https://05z3nnmdtq.ufs.sh/f/iU5967clh2Wv5CKx4aJSaxWjzwBSlmJFhI0Ar72XvOEKyGHk",
   contentSide = "left",
   className = "",
 }: DroneVideoSimpleProps) {
@@ -28,7 +28,7 @@ export default function DroneVideoSimple({
           >
             <div>
               {/* Badge with Larger Lottie Animation */}
-              <div className="inline-flex items-center bg-emerald-100 text-emerald-800 rounded-full px-5 py-3 text-sm font-semibold mb-6">
+              <div className="inline-flex items-center bg-gray-700 text-gray-50 rounded-full px-5 py-3 text-sm font-semibold mb-6">
                 <div className="w-12 h-12 mr-3 flex items-center justify-center">
                   <DotLottieReact
                     src="/lottie/helicopter.json"
