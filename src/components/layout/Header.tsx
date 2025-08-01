@@ -41,20 +41,17 @@ export function Header() {
   return (
     <div className="relative w-full z-50 font-sans">
       <Navbar className="transition-all duration-200">
-        {/* Responsive background with proper padding */}
-        <NavBody className="py-2 sm:py-3 px-4 sm:px-6 lg:px-8 min-h-[60px] sm:min-h-[65px] lg:min-h-[70px] max-w-7xl mx-auto bg-zinc-100">
-          {/* Logo - Left Side - Responsive */}
+        {/* Desktop Navigation */}
+        <NavBody className="py-2 sm:py-3 px-4 sm:px-6 lg:px-8 min-h-[60px] sm:min-h-[65px] lg:min-h-[70px] max-w-7xl mx-auto bg-white">
           <Link href="/" className="flex-shrink-0">
             <Logo />
           </Link>
 
-          {/* Navigation Items - Center - Hidden on mobile */}
           <NavItems
             items={navItems}
             className="hidden lg:flex gap-4 xl:gap-8 text-sm lg:text-base font-light text-gray-700 hover:text-gray-900 transition-colors"
           />
 
-          {/* Right Side Button - Responsive sizing */}
           <Button
             asChild
             style={{
@@ -66,18 +63,18 @@ export function Header() {
             <Link href="/contact">Contact Us</Link>
           </Button>
 
-          {/* Mobile Contact Button - Visible only on small screens */}
           <Button
             asChild
-            className="flex sm:hidden px-3 py-2 rounded-full font-normal text-sm text-black bg-white/90 border-1 border-gray-400 hover:bg-white/20 transition cursor-pointer"
+            className="flex sm:hidden px-3 py-2 rounded-full font-normal text-sm text-black bg-white/90 hover:bg-white/20 transition cursor-pointer"
           >
             <Link href="/contact">Contact</Link>
           </Button>
         </NavBody>
 
-        {/* Mobile Navigation - Enhanced responsiveness */}
-        <MobileNav className="lg:hidden">
-          <MobileNavHeader className="px-4 sm:px-6 py-3 bg-zinc-100 border-b border-gray-200">
+        {/* Mobile Navigation */}
+        <MobileNav className="lg:hidden bg-white">
+          <MobileNavHeader className="px-4 sm:px-6 py-3 bg-white">
+            {/* ☝️ REMOVED: border-b border-gray-200 */}
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
@@ -90,24 +87,25 @@ export function Header() {
           <MobileNavMenu
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
-            className="bg-white border-t border-gray-200 shadow-lg"
+            className="bg-white shadow-lg"
           >
-            {/* Mobile Navigation Links */}
-            <div className="py-2">
+            {/* Mobile Navigation Links - NO DIVIDERS */}
+            <div className="py-2 bg-white">
               {navItems.map((item, idx) => (
                 <Link
                   key={item.name + idx}
                   href={item.link}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-gray-700 font-normal px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg hover:bg-gray-50 hover:text-gray-900 transition-colors border-b border-gray-100 last:border-b-0"
+                  className="block text-gray-700 font-normal px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
                 >
                   {item.name}
                 </Link>
               ))}
             </div>
 
-            {/* Mobile Contact Button */}
-            <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-200">
+            {/* Mobile Contact Button - WHITE BACKGROUND */}
+            <div className="p-4 sm:p-6 bg-white">
+              {/* ☝️ CHANGED: bg-gray-50 → bg-white */}
               <Button
                 asChild
                 className="w-full px-6 py-3 sm:py-4 rounded-full font-medium text-base text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-lg"
