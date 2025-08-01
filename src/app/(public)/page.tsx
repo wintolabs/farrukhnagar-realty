@@ -1,4 +1,4 @@
-import ContactSection from "@/components/home/Contact";
+import Contact from "@/components/home/Contact";
 import DroneVideo from "@/components/home/DroneVideo";
 import { FeaturedListings } from "@/components/home/FeaturedListings";
 import Hero from "@/components/home/Hero";
@@ -18,7 +18,7 @@ export default async function Home() {
       <DroneVideo />
       <WhyChooseUs />
       <PropertyTypes />
-      <ContactSection />
+      <Contact />
     </>
   );
 }
