@@ -27,14 +27,14 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file, metadata }) => {
       try {
         console.log("✅ Upload complete by:", metadata.uploadedBy);
-        console.log("📸 File URL:", file.url);
+        console.log("📸 File URL:", file.ufsUrl);
         console.log("📏 File size:", file.size);
         console.log("📄 File type:", file.type);
 
         // Return success data
         return {
           uploadedBy: metadata.uploadedBy,
-          fileUrl: file.url,
+          fileUrl: file.ufsUrl,
           fileName: file.name,
         };
       } catch (error) {
