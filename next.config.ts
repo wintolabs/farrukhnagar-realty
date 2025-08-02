@@ -1,8 +1,23 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["utfs.io"], // ✅ allow UploadThing image domain
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+        port: "",
+        pathname: "/**",
+      },
+      // Add backup for other UploadThing domains
+      {
+        protocol: "https",
+        hostname: "uploadthing.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

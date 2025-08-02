@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 type ImageUploadFieldProps = {
@@ -32,29 +32,22 @@ export default function ImageUploadField({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
-  const uploadContainerRef = useRef<HTMLDivElement>(null);
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
 
-  const clearFileInputsAfterUpload = useCallback(() => {
-    setTimeout(() => {
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((input) => {
-        (input as HTMLInputElement).value = "";
-      });
-      console.log("File inputs cleared after upload");
-    }, 500); // Delay to allow current upload to complete
-  }, []);
-
+  // ✅ Simple reset - only after upload completion/error
   const resetUploader = useCallback(() => {
     console.log("Resetting uploader...");
     setIsUploading(false);
     setUploadProgress(0);
-    setUploaderKey(() => Date.now());
-    clearFileInputsAfterUpload();
-  }, [clearFileInputsAfterUpload]);
+
+    // Reset component key to force fresh state
+    setTimeout(() => {
+      setUploaderKey(Date.now());
+    }, 500);
+  }, []);
 
   // Delete image from UploadThing storage
   const deleteImageFromStorage = useCallback(async (url: string) => {
@@ -80,16 +73,13 @@ export default function ImageUploadField({
   const handleRemove = useCallback(
     async (indexToRemove: number) => {
       const urlToRemove = value[indexToRemove];
-
       setDeletingImages((prev) => new Set([...prev, urlToRemove]));
 
       try {
         const updated = value.filter((_, index) => index !== indexToRemove);
         onChange(updated);
-
         await deleteImageFromStorage(urlToRemove);
         onImageDeleted?.(urlToRemove);
-
         toast.success("Image deleted successfully");
       } catch (error) {
         console.error("Error removing image:", error);
@@ -106,8 +96,8 @@ export default function ImageUploadField({
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
 
-  const handleUploadBegin = useCallback((fileName: string) => {
-    console.log("Upload started for file:", fileName);
+  const handleUploadBegin = useCallback(() => {
+    console.log("Upload started");
     setIsUploading(true);
     setUploadProgress(0);
   }, []);
@@ -118,8 +108,8 @@ export default function ImageUploadField({
   }, []);
 
   const handleComplete = useCallback(
-    (res: { url: string; ufsUrl: string; name: string }[] | undefined) => {
-      console.log("Upload completed, performing reset...");
+    (res: { url?: string; ufsUrl?: string; name: string }[] | undefined) => {
+      console.log("Upload completed:", res);
 
       if (!res) {
         toast.error("No files uploaded");
@@ -127,20 +117,32 @@ export default function ImageUploadField({
         return;
       }
 
-      const urls = res.map((file) => file.ufsUrl || file.url);
+      const urls = res
+        .map((file) => file.ufsUrl || file.url)
+        .filter((url): url is string => url !== undefined);
+
+      console.log("Filtered URLs:", urls);
+
+      if (urls.length === 0) {
+        toast.error("No valid image URLs received");
+        resetUploader();
+        return;
+      }
+
       const newUrls = [...value, ...urls];
 
       if (newUrls.length > maxImages) {
         toast.warning(
           `Maximum ${maxImages} images allowed. Some images were not added.`
         );
-        onChange([...value, ...urls.slice(0, remainingSlots)]);
+
+        const urlsToAdd = urls.slice(0, remainingSlots);
+        onChange([...value, ...urlsToAdd]);
       } else {
         onChange(newUrls);
-        toast.success(`${urls.length} image(s) uploaded successfully!`);
       }
 
-      // Reset after successful upload
+      toast.success(`${urls.length} image(s) uploaded successfully!`);
       resetUploader();
     },
     [value, onChange, maxImages, remainingSlots, resetUploader]
@@ -150,8 +152,6 @@ export default function ImageUploadField({
     (error: Error) => {
       console.error("Upload failed:", error);
       toast.error(`Upload failed: ${error.message}`);
-
-      // Reset after error
       resetUploader();
     },
     [resetUploader]
@@ -194,10 +194,7 @@ export default function ImageUploadField({
         </div>
 
         {canUploadMore && (
-          <div
-            ref={uploadContainerRef}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors"
-          >
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
             <UploadDropzone
               key={`uploader-${uploaderKey}`}
               endpoint="imageUploader"
@@ -261,7 +258,7 @@ export default function ImageUploadField({
         </div>
       )}
 
-      {/* Uploaded Images */}
+      {/* ✅ Enhanced Image Preview with Error Handling */}
       {value.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Images</h4>
@@ -285,12 +282,22 @@ export default function ImageUploadField({
                   }
                 }}
               >
+                {/* ✅ Enhanced Image with Error Handling */}
                 <Image
                   src={url}
                   alt={`Property image ${index + 1}`}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  unoptimized={true}
+                  onError={(e) => {
+                    console.error("Image failed to load:", url);
+                    // Fallback to show error state
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                  onLoad={() => {
+                    console.log("Image loaded successfully:", url);
+                  }}
                 />
 
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

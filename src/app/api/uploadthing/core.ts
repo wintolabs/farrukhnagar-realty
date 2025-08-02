@@ -27,19 +27,20 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file, metadata }) => {
       try {
         console.log("✅ Upload complete by:", metadata.uploadedBy);
-        console.log("📸 File URL:", file.ufsUrl);
+        console.log("📸 File URL:", file.url); // Legacy
+        console.log("📸 File UFS URL:", file.ufsUrl); // New preferred
         console.log("📏 File size:", file.size);
         console.log("📄 File type:", file.type);
 
-        // Return success data
+        // ✅ Return both URLs for compatibility
         return {
           uploadedBy: metadata.uploadedBy,
-          fileUrl: file.ufsUrl,
+          fileUrl: file.ufsUrl || file.url, // Prefer ufsUrl
           fileName: file.name,
+          success: true,
         };
       } catch (error) {
         console.error("❌ Callback error:", error);
-        // Don't throw error to prevent callback failure
         return {
           uploadedBy: metadata.uploadedBy,
           error: "Callback processing failed but upload succeeded",
