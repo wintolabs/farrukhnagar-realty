@@ -2,7 +2,6 @@
 "use client";
 
 import { UploadDropzone } from "@/utils/uploadthing";
-
 import Image from "next/image";
 import {
   X,
@@ -32,11 +31,19 @@ export default function ImageUploadField({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
-  const [dropzoneKey, setDropzoneKey] = useState(0);
+  const [componentKey, setComponentKey] = useState(0);
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
+
+  // ✅ Force refresh component after upload to ensure clean state
+  const refreshComponent = useCallback(() => {
+    console.log("Refreshing UploadDropzone component...");
+    setComponentKey((prev) => prev + 1);
+    setIsUploading(false);
+    setUploadProgress(0);
+  }, []);
 
   // Delete image from UploadThing storage
   const deleteImageFromStorage = useCallback(async (url: string) => {
@@ -85,38 +92,42 @@ export default function ImageUploadField({
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
 
-  // ✅ UploadThing Documentation Pattern: onUploadBegin
+  // ✅ Simplified upload callbacks
   const handleUploadBegin = useCallback(() => {
-    console.log("Upload process started");
+    console.log("🚀 Upload started");
     setIsUploading(true);
     setUploadProgress(0);
   }, []);
 
-  // ✅ UploadThing Documentation Pattern: onUploadProgress
   const handleUploadProgress = useCallback((progress: number) => {
-    console.log("Upload progress:", progress);
+    console.log("📊 Upload progress:", progress + "%");
     setUploadProgress(progress);
   }, []);
 
-  // ✅ UploadThing Documentation Pattern: onClientUploadComplete
   const handleClientUploadComplete = useCallback(
     (res: { url?: string; ufsUrl?: string; name: string }[] | undefined) => {
-      console.log("Upload completed successfully:", res);
+      console.log("✅ Upload completed:", res);
 
       if (!res || res.length === 0) {
+        console.log("❌ No files in response");
         toast.error("No files uploaded");
-        setIsUploading(false);
+        refreshComponent();
         return;
       }
 
       // Extract URLs and filter out undefined values
       const urls = res
-        .map((file) => file.ufsUrl || file.url)
+        .map((file) => {
+          const imageUrl = file.ufsUrl || file.url;
+          console.log("🖼️ Extracted URL:", imageUrl);
+          return imageUrl;
+        })
         .filter((url): url is string => url !== undefined);
 
       if (urls.length === 0) {
+        console.log("❌ No valid URLs extracted");
         toast.error("No valid image URLs received");
-        setIsUploading(false);
+        refreshComponent();
         return;
       }
 
@@ -134,24 +145,22 @@ export default function ImageUploadField({
 
       toast.success(`${urls.length} image(s) uploaded successfully!`);
 
-      // ✅ Reset component state and force re-render
-      setIsUploading(false);
-      setUploadProgress(0);
-      setDropzoneKey(Date.now());
+      // ✅ Refresh component after successful upload
+      setTimeout(() => {
+        refreshComponent();
+      }, 1000); // Small delay to ensure UI updates complete
     },
-    [value, onChange, maxImages, remainingSlots]
+    [value, onChange, maxImages, remainingSlots, refreshComponent]
   );
 
-  // ✅ UploadThing Documentation Pattern: onUploadError
-  const handleUploadError = useCallback((error: Error) => {
-    console.error("Upload failed:", error);
-    toast.error(`Upload failed: ${error.message}`);
-
-    // Reset component state
-    setIsUploading(false);
-    setUploadProgress(0);
-    setDropzoneKey(Date.now());
-  }, []);
+  const handleUploadError = useCallback(
+    (error: Error) => {
+      console.error("❌ Upload error:", error);
+      toast.error(`Upload failed: ${error.message}`);
+      refreshComponent();
+    },
+    [refreshComponent]
+  );
 
   const handleReorder = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -178,7 +187,7 @@ export default function ImageUploadField({
             {isUploading && (
               <span className="flex items-center gap-1 text-blue-600">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                Uploading...
+                Uploading... {Math.round(uploadProgress)}%
               </span>
             )}
             {canUploadMore && (
@@ -191,9 +200,8 @@ export default function ImageUploadField({
 
         {canUploadMore && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
-            {/* ✅ UploadThing Documentation Pattern: Clean UploadDropzone usage */}
             <UploadDropzone
-              key={dropzoneKey} // ✅ Force re-render after upload completion
+              key={`upload-dropzone-${componentKey}`} // ✅ Unique key for each render
               endpoint="imageUploader"
               onUploadBegin={handleUploadBegin}
               onUploadProgress={handleUploadProgress}
@@ -202,10 +210,10 @@ export default function ImageUploadField({
               appearance={{
                 container: "w-full h-32 border-none",
                 uploadIcon: "text-emerald-600 w-8 h-8",
-                label: "text-emerald-600 font-medium",
+                label: "text-emerald-600 font-medium cursor-pointer",
                 allowedContent: "text-gray-500 text-xs",
                 button:
-                  "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors ut-ready:bg-emerald-600 ut-uploading:bg-emerald-400",
+                  "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors ut-ready:bg-emerald-600 ut-uploading:bg-emerald-400 cursor-pointer",
               }}
               content={{
                 uploadIcon: <Upload className="w-8 h-8" />,
@@ -213,13 +221,15 @@ export default function ImageUploadField({
                   ? `Uploading... ${Math.round(uploadProgress)}%`
                   : "Drag & drop images here or click to browse",
                 allowedContent: `JPG, PNG, JPEG up to 8MB each • Select multiple files`,
-                button: isUploading ? "Uploading..." : "Choose Files",
+                button: isUploading
+                  ? `Uploading... ${Math.round(uploadProgress)}%`
+                  : "Choose Files",
               }}
               disabled={isUploading}
             />
 
             {/* Progress Bar */}
-            {isUploading && uploadProgress > 0 && (
+            {isUploading && (
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Upload Progress</span>
@@ -262,7 +272,7 @@ export default function ImageUploadField({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {value.map((url, index) => (
               <div
-                key={`${url}-${index}`}
+                key={`image-${index}-${url.split("/").pop()}`}
                 className="relative group aspect-square rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-move"
                 draggable
                 onDragStart={(e) => {
@@ -286,10 +296,11 @@ export default function ImageUploadField({
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   unoptimized
-                  onError={(e) => {
-                    console.error("Image failed to load:", url, e);
-                    // Optional: Hide the broken image
-                    (e.target as HTMLImageElement).style.display = "none";
+                  onError={() => {
+                    console.error("❌ Image failed to load:", url);
+                  }}
+                  onLoad={() => {
+                    console.log("✅ Image loaded successfully:", url);
                   }}
                 />
 
