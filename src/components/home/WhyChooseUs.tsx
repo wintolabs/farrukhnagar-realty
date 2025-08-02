@@ -25,7 +25,7 @@ export function WhyChooseUs() {
   ];
 
   return (
-    <section className="bg-white mt-6 sm:mt-8 lg:mt-10">
+    <section className="bg-white m-6 sm:mt-8 lg:mt-10">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header - Responsive */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">

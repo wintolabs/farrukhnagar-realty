@@ -13,11 +13,11 @@ export default async function Home() {
   return (
     <>
       <Hero />
+      <PropertyTypes />
+      <WhyChooseUs />
       <ProcessSection />
       <FeaturedListings properties={properties} />
       <DroneVideo />
-      <WhyChooseUs />
-      <PropertyTypes />
       <Contact />
     </>
   );

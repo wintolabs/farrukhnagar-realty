@@ -164,9 +164,6 @@ export function FeaturedListings({ properties }: { properties: Property[] }) {
             </Button>
           </div>
         </div>
-
-        {/* Responsive bottom spacing */}
-        <div className="mt-8 sm:mt-12 lg:mt-16"></div>
       </div>
     </section>
   );
