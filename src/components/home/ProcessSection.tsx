@@ -1,31 +1,25 @@
 // components/home/ProcessSection.tsx
 "use client";
-import { MessageSquare, FileSearch, UserCheck } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function ProcessSection() {
   const steps = [
     {
-      icon: (
-        <MessageSquare className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-green-500" />
-      ),
+      lottieUrl: "/lottie/message.json",
       title: "Answer questions",
       subtitle: "Tell us your investment goals",
       description:
         "Share your budget, preferred location, and investment timeline. Our experts will understand your requirements in just a few minutes.",
     },
     {
-      icon: (
-        <FileSearch className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-orange-500" />
-      ),
+      lottieUrl: "/lottie/map-search.json",
       title: "Select a property",
       subtitle: "Browse curated options",
       description:
         "Choose from our RERA-verified plots and properties in prime Farrukhnagar locations. All with clear legal documentation.",
     },
     {
-      icon: (
-        <UserCheck className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-blue-800" />
-      ),
+      lottieUrl: "/lottie/registration.json",
       title: "Get registered",
       subtitle: "Complete legal process",
       description:
@@ -64,14 +58,22 @@ export default function ProcessSection() {
           </h2>
         </div>
 
-        {/* Three Process Cards - Responsive grid */}
+        {/* Three Process Cards - Responsive grid with Lottie */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="text-center flex flex-col items-center">
-              {/* Icon Circle - responsive sizing */}
+            <div
+              key={index}
+              className="text-center flex flex-col items-center group cursor-pointer"
+            >
+              {/* Lottie Animation - responsive sizing */}
               <div className="mb-4 sm:mb-6 flex justify-center">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center">
-                  {step.icon}
+                <div className="w-18 h-18 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 group-hover:scale-110 transition-transform duration-300">
+                  <DotLottieReact
+                    src={step.lottieUrl}
+                    loop
+                    autoplay
+                    className="w-full h-full"
+                  />
                 </div>
               </div>
 
