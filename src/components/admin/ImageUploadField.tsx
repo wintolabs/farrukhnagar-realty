@@ -2,6 +2,7 @@
 "use client";
 
 import { UploadDropzone } from "@/utils/uploadthing";
+
 import Image from "next/image";
 import {
   X,
@@ -28,26 +29,14 @@ export default function ImageUploadField({
   required = false,
   onImageDeleted,
 }: ImageUploadFieldProps) {
-  const [uploaderKey, setUploaderKey] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
+  const [dropzoneKey, setDropzoneKey] = useState(0);
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
-
-  // ✅ Simple reset - only after upload completion/error
-  const resetUploader = useCallback(() => {
-    console.log("Resetting uploader...");
-    setIsUploading(false);
-    setUploadProgress(0);
-
-    // Reset component key to force fresh state
-    setTimeout(() => {
-      setUploaderKey(Date.now());
-    }, 500);
-  }, []);
 
   // Delete image from UploadThing storage
   const deleteImageFromStorage = useCallback(async (url: string) => {
@@ -96,36 +85,38 @@ export default function ImageUploadField({
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
 
+  // ✅ UploadThing Documentation Pattern: onUploadBegin
   const handleUploadBegin = useCallback(() => {
-    console.log("Upload started");
+    console.log("Upload process started");
     setIsUploading(true);
     setUploadProgress(0);
   }, []);
 
+  // ✅ UploadThing Documentation Pattern: onUploadProgress
   const handleUploadProgress = useCallback((progress: number) => {
     console.log("Upload progress:", progress);
     setUploadProgress(progress);
   }, []);
 
-  const handleComplete = useCallback(
+  // ✅ UploadThing Documentation Pattern: onClientUploadComplete
+  const handleClientUploadComplete = useCallback(
     (res: { url?: string; ufsUrl?: string; name: string }[] | undefined) => {
-      console.log("Upload completed:", res);
+      console.log("Upload completed successfully:", res);
 
-      if (!res) {
+      if (!res || res.length === 0) {
         toast.error("No files uploaded");
-        resetUploader();
+        setIsUploading(false);
         return;
       }
 
+      // Extract URLs and filter out undefined values
       const urls = res
         .map((file) => file.ufsUrl || file.url)
         .filter((url): url is string => url !== undefined);
 
-      console.log("Filtered URLs:", urls);
-
       if (urls.length === 0) {
         toast.error("No valid image URLs received");
-        resetUploader();
+        setIsUploading(false);
         return;
       }
 
@@ -135,7 +126,6 @@ export default function ImageUploadField({
         toast.warning(
           `Maximum ${maxImages} images allowed. Some images were not added.`
         );
-
         const urlsToAdd = urls.slice(0, remainingSlots);
         onChange([...value, ...urlsToAdd]);
       } else {
@@ -143,19 +133,25 @@ export default function ImageUploadField({
       }
 
       toast.success(`${urls.length} image(s) uploaded successfully!`);
-      resetUploader();
+
+      // ✅ Reset component state and force re-render
+      setIsUploading(false);
+      setUploadProgress(0);
+      setDropzoneKey(Date.now());
     },
-    [value, onChange, maxImages, remainingSlots, resetUploader]
+    [value, onChange, maxImages, remainingSlots]
   );
 
-  const handleError = useCallback(
-    (error: Error) => {
-      console.error("Upload failed:", error);
-      toast.error(`Upload failed: ${error.message}`);
-      resetUploader();
-    },
-    [resetUploader]
-  );
+  // ✅ UploadThing Documentation Pattern: onUploadError
+  const handleUploadError = useCallback((error: Error) => {
+    console.error("Upload failed:", error);
+    toast.error(`Upload failed: ${error.message}`);
+
+    // Reset component state
+    setIsUploading(false);
+    setUploadProgress(0);
+    setDropzoneKey(Date.now());
+  }, []);
 
   const handleReorder = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -195,13 +191,14 @@ export default function ImageUploadField({
 
         {canUploadMore && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
+            {/* ✅ UploadThing Documentation Pattern: Clean UploadDropzone usage */}
             <UploadDropzone
-              key={`uploader-${uploaderKey}`}
+              key={dropzoneKey} // ✅ Force re-render after upload completion
               endpoint="imageUploader"
               onUploadBegin={handleUploadBegin}
               onUploadProgress={handleUploadProgress}
-              onClientUploadComplete={handleComplete}
-              onUploadError={handleError}
+              onClientUploadComplete={handleClientUploadComplete}
+              onUploadError={handleUploadError}
               appearance={{
                 container: "w-full h-32 border-none",
                 uploadIcon: "text-emerald-600 w-8 h-8",
@@ -258,7 +255,7 @@ export default function ImageUploadField({
         </div>
       )}
 
-      {/* ✅ Enhanced Image Preview with Error Handling */}
+      {/* Image Preview */}
       {value.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Images</h4>
@@ -282,21 +279,17 @@ export default function ImageUploadField({
                   }
                 }}
               >
-                {/* ✅ Enhanced Image with Error Handling */}
                 <Image
                   src={url}
                   alt={`Property image ${index + 1}`}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  unoptimized={true}
+                  unoptimized
                   onError={(e) => {
-                    console.error("Image failed to load:", url);
-                    // Fallback to show error state
+                    console.error("Image failed to load:", url, e);
+                    // Optional: Hide the broken image
                     (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                  onLoad={() => {
-                    console.log("Image loaded successfully:", url);
                   }}
                 />
 
