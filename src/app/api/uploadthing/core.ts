@@ -7,7 +7,7 @@ export const ourFileRouter = {
   imageUploader: f({
     image: {
       maxFileSize: "8MB",
-      maxFileCount: 10, // Allow up to 10 images for property listings
+      maxFileCount: 10,
     },
   })
     .middleware(async ({ req }) => {
@@ -25,10 +25,26 @@ export const ourFileRouter = {
       return { uploadedBy: "admin" };
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("✅ Upload complete by:", metadata.uploadedBy);
-      console.log("📸 File URL:", file.url);
-      console.log("📏 File size:", file.size);
-      console.log("📄 File type:", file.type);
+      try {
+        console.log("✅ Upload complete by:", metadata.uploadedBy);
+        console.log("📸 File URL:", file.url);
+        console.log("📏 File size:", file.size);
+        console.log("📄 File type:", file.type);
+
+        // Return success data
+        return {
+          uploadedBy: metadata.uploadedBy,
+          fileUrl: file.url,
+          fileName: file.name,
+        };
+      } catch (error) {
+        console.error("❌ Callback error:", error);
+        // Don't throw error to prevent callback failure
+        return {
+          uploadedBy: metadata.uploadedBy,
+          error: "Callback processing failed but upload succeeded",
+        };
+      }
     }),
 } satisfies FileRouter;
 

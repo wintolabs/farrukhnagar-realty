@@ -6,24 +6,25 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const session = req.cookies.get("admin-session")?.value;
 
+  // Allow UploadThing API routes to pass through without auth check
+  if (pathname.startsWith("/api/uploadthing")) {
+    return NextResponse.next();
+  }
+
   // Whitelist the login route
   if (pathname === "/admin/login") {
     return NextResponse.next();
   }
 
+  // Only protect admin pages (not API routes)
   const isProtectedPage = pathname.startsWith("/admin");
-  const isProtectedApi = pathname.startsWith("/api/uploadthing");
 
-  if (isProtectedPage || isProtectedApi) {
+  if (isProtectedPage) {
     if (session === "1") {
       return NextResponse.next();
     }
-    // If it’s an admin page, redirect to login
-    if (isProtectedPage) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
-    }
-    // Otherwise block API
-    return new NextResponse("Unauthorized", { status: 401 });
+    // Redirect to login if not authenticated
+    return NextResponse.redirect(new URL("/admin/login", req.url));
   }
 
   // Everything else is public

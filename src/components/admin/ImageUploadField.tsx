@@ -22,15 +22,25 @@ export default function ImageUploadField({
 }: ImageUploadFieldProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [key, setKey] = useState(0); // Force re-render of UploadDropzone
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
+
+  // Reset the key when upload completes to refresh the component
+  const refreshUploader = useCallback(() => {
+    setKey((prev) => prev + 1);
+  }, []);
 
   const handleComplete = useCallback(
     (res: { url: string }[] | undefined) => {
       setIsUploading(false);
       setUploadProgress(0);
-      if (!res) return;
+
+      if (!res) {
+        refreshUploader();
+        return;
+      }
 
       const urls = res.map((file) => file.url);
       const newUrls = [...value, ...urls];
@@ -44,8 +54,24 @@ export default function ImageUploadField({
         onChange(newUrls);
         toast.success(`${urls.length} image(s) uploaded successfully!`);
       }
+
+      // Refresh the uploader component
+      refreshUploader();
     },
-    [value, onChange, maxImages, remainingSlots]
+    [value, onChange, maxImages, remainingSlots, refreshUploader]
+  );
+
+  const handleError = useCallback(
+    (error: Error) => {
+      console.error("Upload failed:", error);
+      setIsUploading(false);
+      setUploadProgress(0);
+      toast.error(`Upload failed: ${error.message}`);
+
+      // Refresh the uploader component on error
+      refreshUploader();
+    },
+    [refreshUploader]
   );
 
   const handleRemove = useCallback(
@@ -56,13 +82,6 @@ export default function ImageUploadField({
     },
     [value, onChange]
   );
-
-  const handleError = useCallback((error: Error) => {
-    console.error("Upload failed:", error);
-    setIsUploading(false);
-    setUploadProgress(0);
-    toast.error(`Upload failed: ${error.message}`);
-  }, []);
 
   const handleReorder = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -76,7 +95,6 @@ export default function ImageUploadField({
 
   return (
     <div className="space-y-4">
-      {/* Upload Area */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-gray-700">
@@ -91,12 +109,17 @@ export default function ImageUploadField({
         {canUploadMore && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
             <UploadDropzone
+              key={key} // Force re-render when key changes
               endpoint="imageUploader"
               onUploadBegin={() => {
+                console.log("Upload started");
                 setIsUploading(true);
                 setUploadProgress(0);
               }}
-              onUploadProgress={(progress) => setUploadProgress(progress)}
+              onUploadProgress={(progress) => {
+                console.log("Upload progress:", progress);
+                setUploadProgress(progress);
+              }}
               onClientUploadComplete={handleComplete}
               onUploadError={handleError}
               appearance={{
@@ -139,7 +162,6 @@ export default function ImageUploadField({
         )}
       </div>
 
-      {/* Validation Message */}
       {required && value.length === 0 && (
         <div className="flex items-center gap-2 text-red-600 text-sm">
           <AlertCircle className="w-4 h-4" />
@@ -147,7 +169,7 @@ export default function ImageUploadField({
         </div>
       )}
 
-      {/* Image Preview Grid */}
+      {/* Image Preview Grid - existing code */}
       {value.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Images</h4>
@@ -179,7 +201,6 @@ export default function ImageUploadField({
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
 
-                {/* Image Controls Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <button
                     type="button"
@@ -191,12 +212,10 @@ export default function ImageUploadField({
                   </button>
                 </div>
 
-                {/* Image Number Badge */}
                 <div className="absolute top-2 left-2 bg-black/70 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
                   {index + 1}
                 </div>
 
-                {/* First Image Badge */}
                 {index === 0 && (
                   <div className="absolute top-2 right-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded">
                     Cover
