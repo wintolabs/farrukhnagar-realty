@@ -21,14 +21,6 @@ type ImageUploadFieldProps = {
   onImageDeleted?: (url: string) => void;
 };
 
-type UploadState = {
-  status: "uploading" | "success" | "error";
-  progress: number;
-  url?: string;
-  error?: string;
-  file?: File;
-};
-
 export default function ImageUploadField({
   value,
   onChange,
@@ -37,20 +29,18 @@ export default function ImageUploadField({
   onImageDeleted,
 }: ImageUploadFieldProps) {
   const [uploaderKey, setUploaderKey] = useState(0);
-  const [uploadStates, setUploadStates] = useState<Map<string, UploadState>>(
-    new Map()
-  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
 
-  const canUploadMore = value.length + uploadStates.size < maxImages;
-  const remainingSlots = maxImages - value.length - uploadStates.size;
+  const canUploadMore = value.length < maxImages;
+  const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
-  const pendingUploads = Array.from(uploadStates.values()).filter(
-    (state) => state.status === "uploading"
-  ).length;
 
   const resetUploader = useCallback(() => {
     setUploaderKey((prev) => prev + 1);
+    setIsUploading(false);
+    setUploadProgress(0);
   }, []);
 
   // Delete image from UploadThing storage
@@ -81,15 +71,18 @@ export default function ImageUploadField({
       setDeletingImages((prev) => new Set([...prev, urlToRemove]));
 
       try {
+        // Remove from UI immediately
         const updated = value.filter((_, index) => index !== indexToRemove);
         onChange(updated);
 
+        // Delete from storage
         await deleteImageFromStorage(urlToRemove);
         onImageDeleted?.(urlToRemove);
 
         toast.success("Image deleted successfully");
       } catch (error) {
         console.error("Error removing image:", error);
+        // Restore UI on failure
         onChange(value);
         toast.error("Failed to delete image");
       } finally {
@@ -102,6 +95,17 @@ export default function ImageUploadField({
     },
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
+
+  const handleUploadBegin = useCallback(() => {
+    console.log("Upload started");
+    setIsUploading(true);
+    setUploadProgress(0);
+  }, []);
+
+  const handleUploadProgress = useCallback((progress: number) => {
+    console.log("Upload progress:", progress);
+    setUploadProgress(progress);
+  }, []);
 
   const handleComplete = useCallback(
     (res: { url: string; name: string }[] | undefined) => {
@@ -124,7 +128,6 @@ export default function ImageUploadField({
         toast.success(`${urls.length} image(s) uploaded successfully!`);
       }
 
-      setUploadStates(new Map());
       resetUploader();
     },
     [value, onChange, maxImages, remainingSlots, resetUploader]
@@ -161,10 +164,10 @@ export default function ImageUploadField({
             <span>
               {totalUploaded}/{maxImages} uploaded
             </span>
-            {pendingUploads > 0 && (
+            {isUploading && (
               <span className="flex items-center gap-1 text-blue-600">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                {pendingUploads} uploading
+                Uploading...
               </span>
             )}
             {canUploadMore && (
@@ -180,9 +183,8 @@ export default function ImageUploadField({
             <UploadDropzone
               key={uploaderKey}
               endpoint="imageUploader"
-              onUploadBegin={() => {
-                console.log("Upload started");
-              }}
+              onUploadBegin={handleUploadBegin}
+              onUploadProgress={handleUploadProgress}
               onClientUploadComplete={handleComplete}
               onUploadError={handleError}
               appearance={{
@@ -195,16 +197,36 @@ export default function ImageUploadField({
               }}
               content={{
                 uploadIcon: <Upload className="w-8 h-8" />,
-                label: "Drag & drop images here or click to browse",
+                label: isUploading
+                  ? `Uploading... ${Math.round(uploadProgress)}%`
+                  : "Drag & drop images here or click to browse",
                 allowedContent: `JPG, PNG, JPEG up to 8MB each • Select multiple files`,
-                button: "Choose Files",
+                button: isUploading ? "Uploading..." : "Choose Files",
               }}
-              disabled={!canUploadMore}
+              disabled={isUploading}
             />
+
+            {/* Progress Bar */}
+            {isUploading && uploadProgress > 0 && (
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Upload Progress</span>
+                  <span className="text-sm font-medium text-emerald-600">
+                    {Math.round(uploadProgress)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-emerald-600 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {!canUploadMore && uploadStates.size === 0 && (
+        {!canUploadMore && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
             <ImageIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-500">
@@ -214,7 +236,7 @@ export default function ImageUploadField({
         )}
       </div>
 
-      {required && value.length === 0 && uploadStates.size === 0 && (
+      {required && value.length === 0 && (
         <div className="flex items-center gap-2 text-red-600 text-sm">
           <AlertCircle className="w-4 h-4" />
           <span>At least one image is required</span>
