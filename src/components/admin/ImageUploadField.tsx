@@ -1,7 +1,7 @@
 // src/components/admin/ImageUploadField.tsx
 "use client";
 
-import { UploadDropzone } from "@/utils/uploadthing";
+import { UploadButton, UploadDropzone } from "@/utils/uploadthing";
 import Image from "next/image";
 import {
   X,
@@ -31,19 +31,13 @@ export default function ImageUploadField({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
-  const [componentKey, setComponentKey] = useState(0);
+  const [uploaderType, setUploaderType] = useState<"dropzone" | "button">(
+    "dropzone"
+  );
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
-
-  // ✅ Force refresh component after upload to ensure clean state
-  const refreshComponent = useCallback(() => {
-    console.log("Refreshing UploadDropzone component...");
-    setComponentKey((prev) => prev + 1);
-    setIsUploading(false);
-    setUploadProgress(0);
-  }, []);
 
   // Delete image from UploadThing storage
   const deleteImageFromStorage = useCallback(async (url: string) => {
@@ -92,12 +86,11 @@ export default function ImageUploadField({
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
 
-  // ✅ Simplified upload callbacks
   const handleUploadBegin = useCallback(() => {
-    console.log("🚀 Upload started");
+    console.log("🚀 Upload started via", uploaderType);
     setIsUploading(true);
     setUploadProgress(0);
-  }, []);
+  }, [uploaderType]);
 
   const handleUploadProgress = useCallback((progress: number) => {
     console.log("📊 Upload progress:", progress + "%");
@@ -106,16 +99,15 @@ export default function ImageUploadField({
 
   const handleClientUploadComplete = useCallback(
     (res: { url?: string; ufsUrl?: string; name: string }[] | undefined) => {
-      console.log("✅ Upload completed:", res);
+      console.log("✅ Upload completed via", uploaderType, ":", res);
 
       if (!res || res.length === 0) {
         console.log("❌ No files in response");
         toast.error("No files uploaded");
-        refreshComponent();
+        setIsUploading(false);
         return;
       }
 
-      // Extract URLs and filter out undefined values
       const urls = res
         .map((file) => {
           const imageUrl = file.ufsUrl || file.url;
@@ -127,7 +119,7 @@ export default function ImageUploadField({
       if (urls.length === 0) {
         console.log("❌ No valid URLs extracted");
         toast.error("No valid image URLs received");
-        refreshComponent();
+        setIsUploading(false);
         return;
       }
 
@@ -144,22 +136,20 @@ export default function ImageUploadField({
       }
 
       toast.success(`${urls.length} image(s) uploaded successfully!`);
-
-      // ✅ Refresh component after successful upload
-      setTimeout(() => {
-        refreshComponent();
-      }, 1000); // Small delay to ensure UI updates complete
+      setIsUploading(false);
+      setUploadProgress(0);
     },
-    [value, onChange, maxImages, remainingSlots, refreshComponent]
+    [value, onChange, maxImages, remainingSlots, uploaderType]
   );
 
   const handleUploadError = useCallback(
     (error: Error) => {
-      console.error("❌ Upload error:", error);
+      console.error("❌ Upload error via", uploaderType, ":", error);
       toast.error(`Upload failed: ${error.message}`);
-      refreshComponent();
+      setIsUploading(false);
+      setUploadProgress(0);
     },
-    [refreshComponent]
+    [uploaderType]
   );
 
   const handleReorder = useCallback(
@@ -199,52 +189,123 @@ export default function ImageUploadField({
         </div>
 
         {canUploadMore && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
-            <UploadDropzone
-              key={`upload-dropzone-${componentKey}`} // ✅ Unique key for each render
-              endpoint="imageUploader"
-              onUploadBegin={handleUploadBegin}
-              onUploadProgress={handleUploadProgress}
-              onClientUploadComplete={handleClientUploadComplete}
-              onUploadError={handleUploadError}
-              appearance={{
-                container: "w-full h-32 border-none",
-                uploadIcon: "text-emerald-600 w-8 h-8",
-                label: "text-emerald-600 font-medium cursor-pointer",
-                allowedContent: "text-gray-500 text-xs",
-                button:
-                  "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors ut-ready:bg-emerald-600 ut-uploading:bg-emerald-400 cursor-pointer",
-              }}
-              content={{
-                uploadIcon: <Upload className="w-8 h-8" />,
-                label: isUploading
-                  ? `Uploading... ${Math.round(uploadProgress)}%`
-                  : "Drag & drop images here or click to browse",
-                allowedContent: `JPG, PNG, JPEG up to 8MB each • Select multiple files`,
-                button: isUploading
-                  ? `Uploading... ${Math.round(uploadProgress)}%`
-                  : "Choose Files",
-              }}
-              disabled={isUploading}
-            />
+          <div className="space-y-4">
+            {/* ✅ Try UploadButton Approach */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors text-center">
+              <div className="flex flex-col items-center space-y-4">
+                <Upload className="w-12 h-12 text-emerald-600" />
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Upload Property Images
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    JPG, PNG, JPEG up to 8MB each • Select multiple files
+                  </p>
 
-            {/* Progress Bar */}
-            {isUploading && (
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Upload Progress</span>
-                  <span className="text-sm font-medium text-emerald-600">
-                    {Math.round(uploadProgress)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-emerald-600 h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${uploadProgress}%` }}
+                  <UploadButton
+                    endpoint="imageUploader"
+                    onUploadBegin={() => {
+                      setUploaderType("button");
+                      handleUploadBegin();
+                    }}
+                    onUploadProgress={handleUploadProgress}
+                    onClientUploadComplete={handleClientUploadComplete}
+                    onUploadError={handleUploadError}
+                    appearance={{
+                      button:
+                        "bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors ut-ready:bg-emerald-600 ut-uploading:bg-emerald-400",
+                      allowedContent: "text-gray-500 text-xs mt-2",
+                    }}
+                    content={{
+                      button: isUploading
+                        ? `Uploading... ${Math.round(uploadProgress)}%`
+                        : "Choose Files",
+                      allowedContent: "Select images to upload",
+                    }}
+                    disabled={isUploading}
                   />
                 </div>
+
+                {/* Progress Bar for Button Upload */}
+                {isUploading && uploaderType === "button" && (
+                  <div className="w-full max-w-xs space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Upload Progress
+                      </span>
+                      <span className="text-sm font-medium text-emerald-600">
+                        {Math.round(uploadProgress)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-emerald-600 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* ✅ Alternative: Fallback UploadDropzone */}
+            <details className="bg-gray-50 rounded-lg">
+              <summary className="cursor-pointer p-4 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                Alternative: Drag & Drop Upload
+              </summary>
+              <div className="p-4 pt-0">
+                <UploadDropzone
+                  key={`fallback-dropzone-${Date.now()}`}
+                  endpoint="imageUploader"
+                  onUploadBegin={() => {
+                    setUploaderType("dropzone");
+                    handleUploadBegin();
+                  }}
+                  onUploadProgress={handleUploadProgress}
+                  onClientUploadComplete={handleClientUploadComplete}
+                  onUploadError={handleUploadError}
+                  appearance={{
+                    container:
+                      "w-full h-32 border border-dashed border-gray-300 rounded-lg",
+                    uploadIcon: "text-emerald-600 w-8 h-8",
+                    label: "text-emerald-600 font-medium",
+                    allowedContent: "text-gray-500 text-xs",
+                    button:
+                      "bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors",
+                  }}
+                  content={{
+                    uploadIcon: <Upload className="w-8 h-8" />,
+                    label:
+                      isUploading && uploaderType === "dropzone"
+                        ? `Uploading... ${Math.round(uploadProgress)}%`
+                        : "Drag & drop images here",
+                    allowedContent: "Or click to browse files",
+                    button: "Browse Files",
+                  }}
+                  disabled={isUploading}
+                />
+
+                {/* Progress Bar for Dropzone Upload */}
+                {isUploading && uploaderType === "dropzone" && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Upload Progress
+                      </span>
+                      <span className="text-sm font-medium text-emerald-600">
+                        {Math.round(uploadProgress)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-emerald-600 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           </div>
         )}
 
@@ -265,7 +326,7 @@ export default function ImageUploadField({
         </div>
       )}
 
-      {/* Image Preview */}
+      {/* Image Preview - Keep existing code */}
       {value.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Images</h4>
