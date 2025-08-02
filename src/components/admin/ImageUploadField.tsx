@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 type ImageUploadFieldProps = {
@@ -38,21 +38,74 @@ export default function ImageUploadField({
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
 
-  // Enhanced reset function that forces component remount
+  // ✅ Enhanced file input reset function
+  const clearFileInputs = useCallback(() => {
+    // Clear all file inputs in the component
+    if (uploadContainerRef.current) {
+      const fileInputs =
+        uploadContainerRef.current.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => {
+        (input as HTMLInputElement).value = "";
+        // Also trigger a synthetic change event to ensure clean state
+        const event = new Event("change", { bubbles: true });
+        input.dispatchEvent(event);
+      });
+    }
+
+    // Also clear globally to be extra safe
+    const allFileInputs = document.querySelectorAll('input[type="file"]');
+    allFileInputs.forEach((input) => {
+      (input as HTMLInputElement).value = "";
+    });
+  }, []);
+
+  // ✅ Force reset with multiple strategies
   const resetUploader = useCallback(() => {
-    console.log("Resetting uploader...");
-    setUploaderKey((prev) => prev + 1);
+    console.log("Force resetting uploader with multiple strategies...");
+
+    // Strategy 1: Clear file inputs first
+    clearFileInputs();
+
+    // Strategy 2: Reset component state
     setIsUploading(false);
     setUploadProgress(0);
 
-    // Additional cleanup: try to clear any file input values
-    setTimeout(() => {
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((input) => {
-        (input as HTMLInputElement).value = "";
-      });
+    // Strategy 3: Force component remount with unique key
+    setUploaderKey(() => Date.now()); // No unused parameters
+  }, [clearFileInputs]);
+
+  // ✅ Enhanced click handler with aggressive reset
+  const handleUploadAreaClick = useCallback(
+    (e: React.MouseEvent) => {
+      console.log("Upload area clicked - performing aggressive reset");
+
+      // Prevent any default behavior
+      e.preventDefault();
+
+      // Clear inputs before any interaction
+      clearFileInputs();
+
+      // Small delay to ensure DOM is updated, then reset component
+      setTimeout(() => {
+        resetUploader();
+      }, 10);
+
+      // Another cleanup after a slightly longer delay
+      setTimeout(() => {
+        clearFileInputs();
+      }, 100);
+    },
+    [clearFileInputs, resetUploader]
+  );
+
+  // ✅ Use effect to clear inputs when component mounts or key changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      clearFileInputs();
     }, 100);
-  }, []);
+
+    return () => clearTimeout(timer);
+  }, [uploaderKey, clearFileInputs]);
 
   // Delete image from UploadThing storage
   const deleteImageFromStorage = useCallback(async (url: string) => {
@@ -108,11 +161,6 @@ export default function ImageUploadField({
     console.log("Upload started for file:", fileName);
     setIsUploading(true);
     setUploadProgress(0);
-
-    // Reset the component immediately to clear file input state
-    setTimeout(() => {
-      setUploaderKey((prev) => prev + 1);
-    }, 50);
   }, []);
 
   const handleUploadProgress = useCallback((progress: number) => {
@@ -121,8 +169,8 @@ export default function ImageUploadField({
   }, []);
 
   const handleComplete = useCallback(
-    (res: { url: string; name: string }[] | undefined) => {
-      console.log("Upload completed, resetting...");
+    (res: { url: string; ufsUrl: string; name: string }[] | undefined) => {
+      console.log("Upload completed, performing full reset...");
 
       if (!res) {
         toast.error("No files uploaded");
@@ -130,7 +178,8 @@ export default function ImageUploadField({
         return;
       }
 
-      const urls = res.map((file) => file.url);
+      // ✅ Use ufsUrl with fallback to url for deprecated property
+      const urls = res.map((file) => file.ufsUrl || file.url);
       const newUrls = [...value, ...urls];
 
       if (newUrls.length > maxImages) {
@@ -143,6 +192,7 @@ export default function ImageUploadField({
         toast.success(`${urls.length} image(s) uploaded successfully!`);
       }
 
+      // Reset everything after successful upload
       resetUploader();
     },
     [value, onChange, maxImages, remainingSlots, resetUploader]
@@ -150,9 +200,10 @@ export default function ImageUploadField({
 
   const handleError = useCallback(
     (error: Error) => {
-      console.error("Upload failed, resetting...", error);
+      console.error("Upload failed, performing full reset...", error);
       toast.error(`Upload failed: ${error.message}`);
 
+      // Reset everything after error
       resetUploader();
     },
     [resetUploader]
@@ -167,17 +218,6 @@ export default function ImageUploadField({
     },
     [value, onChange]
   );
-
-  // Click handler to ensure component is ready
-  const handleUploadAreaClick = useCallback(() => {
-    console.log("Upload area clicked - ensuring fresh state");
-    if (!isUploading) {
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach((input) => {
-        (input as HTMLInputElement).value = "";
-      });
-    }
-  }, [isUploading]);
 
   return (
     <div className="space-y-4">
@@ -208,11 +248,11 @@ export default function ImageUploadField({
         {canUploadMore && (
           <div
             ref={uploadContainerRef}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors"
-            onClick={handleUploadAreaClick}
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors cursor-pointer"
+            onClick={handleUploadAreaClick} // ✅ Aggressive reset on every click
           >
             <UploadDropzone
-              key={`upload-${uploaderKey}-${Date.now()}`}
+              key={`uploader-${uploaderKey}`} // ✅ Use timestamp-based key for uniqueness
               endpoint="imageUploader"
               onUploadBegin={handleUploadBegin}
               onUploadProgress={handleUploadProgress}
