@@ -3,7 +3,13 @@
 
 import { UploadDropzone } from "@/utils/uploadthing";
 import Image from "next/image";
-import { X, Upload, Image as ImageIcon, AlertCircle } from "lucide-react";
+import {
+  X,
+  Upload,
+  Image as ImageIcon,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +18,15 @@ type ImageUploadFieldProps = {
   onChange: (urls: string[]) => void;
   maxImages?: number;
   required?: boolean;
+  onImageDeleted?: (url: string) => void;
+};
+
+type UploadState = {
+  status: "uploading" | "success" | "error";
+  progress: number;
+  url?: string;
+  error?: string;
+  file?: File;
 };
 
 export default function ImageUploadField({
@@ -19,26 +34,80 @@ export default function ImageUploadField({
   onChange,
   maxImages = 10,
   required = false,
+  onImageDeleted,
 }: ImageUploadFieldProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [key, setKey] = useState(0); // Force re-render of UploadDropzone
+  const [uploaderKey, setUploaderKey] = useState(0);
+  const [uploadStates, setUploadStates] = useState<Map<string, UploadState>>(
+    new Map()
+  );
+  const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
 
-  const canUploadMore = value.length < maxImages;
-  const remainingSlots = maxImages - value.length;
+  const canUploadMore = value.length + uploadStates.size < maxImages;
+  const remainingSlots = maxImages - value.length - uploadStates.size;
+  const totalUploaded = value.length;
+  const pendingUploads = Array.from(uploadStates.values()).filter(
+    (state) => state.status === "uploading"
+  ).length;
 
-  // Reset the key when upload completes to refresh the component
-  const refreshUploader = useCallback(() => {
-    setKey((prev) => prev + 1);
+  const resetUploader = useCallback(() => {
+    setUploaderKey((prev) => prev + 1);
   }, []);
 
-  const handleComplete = useCallback(
-    (res: { url: string }[] | undefined) => {
-      setIsUploading(false);
-      setUploadProgress(0);
+  // Delete image from UploadThing storage
+  const deleteImageFromStorage = useCallback(async (url: string) => {
+    try {
+      const fileKey = url.split("/").pop();
+      if (fileKey) {
+        const response = await fetch("/api/uploadthing/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileKey }),
+        });
 
+        if (!response.ok) {
+          throw new Error("Failed to delete from storage");
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting image from storage:", error);
+      toast.error("Failed to delete image from storage");
+    }
+  }, []);
+
+  const handleRemove = useCallback(
+    async (indexToRemove: number) => {
+      const urlToRemove = value[indexToRemove];
+
+      setDeletingImages((prev) => new Set([...prev, urlToRemove]));
+
+      try {
+        const updated = value.filter((_, index) => index !== indexToRemove);
+        onChange(updated);
+
+        await deleteImageFromStorage(urlToRemove);
+        onImageDeleted?.(urlToRemove);
+
+        toast.success("Image deleted successfully");
+      } catch (error) {
+        console.error("Error removing image:", error);
+        onChange(value);
+        toast.error("Failed to delete image");
+      } finally {
+        setDeletingImages((prev) => {
+          const newSet = new Set([...prev]);
+          newSet.delete(urlToRemove);
+          return newSet;
+        });
+      }
+    },
+    [value, onChange, deleteImageFromStorage, onImageDeleted]
+  );
+
+  const handleComplete = useCallback(
+    (res: { url: string; name: string }[] | undefined) => {
       if (!res) {
-        refreshUploader();
+        toast.error("No files uploaded");
+        resetUploader();
         return;
       }
 
@@ -55,32 +124,19 @@ export default function ImageUploadField({
         toast.success(`${urls.length} image(s) uploaded successfully!`);
       }
 
-      // Refresh the uploader component
-      refreshUploader();
+      setUploadStates(new Map());
+      resetUploader();
     },
-    [value, onChange, maxImages, remainingSlots, refreshUploader]
+    [value, onChange, maxImages, remainingSlots, resetUploader]
   );
 
   const handleError = useCallback(
     (error: Error) => {
       console.error("Upload failed:", error);
-      setIsUploading(false);
-      setUploadProgress(0);
       toast.error(`Upload failed: ${error.message}`);
-
-      // Refresh the uploader component on error
-      refreshUploader();
+      resetUploader();
     },
-    [refreshUploader]
-  );
-
-  const handleRemove = useCallback(
-    (indexToRemove: number) => {
-      const updated = value.filter((_, index) => index !== indexToRemove);
-      onChange(updated);
-      toast.success("Image removed");
-    },
-    [value, onChange]
+    [resetUploader]
   );
 
   const handleReorder = useCallback(
@@ -101,24 +157,31 @@ export default function ImageUploadField({
             Property Images{" "}
             {required && <span className="text-red-500">*</span>}
           </label>
-          <span className="text-xs text-gray-500">
-            {value.length}/{maxImages} images
-          </span>
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <span>
+              {totalUploaded}/{maxImages} uploaded
+            </span>
+            {pendingUploads > 0 && (
+              <span className="flex items-center gap-1 text-blue-600">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                {pendingUploads} uploading
+              </span>
+            )}
+            {canUploadMore && (
+              <span className="text-emerald-600">
+                {remainingSlots} slots remaining
+              </span>
+            )}
+          </div>
         </div>
 
         {canUploadMore && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
             <UploadDropzone
-              key={key} // Force re-render when key changes
+              key={uploaderKey}
               endpoint="imageUploader"
               onUploadBegin={() => {
                 console.log("Upload started");
-                setIsUploading(true);
-                setUploadProgress(0);
-              }}
-              onUploadProgress={(progress) => {
-                console.log("Upload progress:", progress);
-                setUploadProgress(progress);
               }}
               onClientUploadComplete={handleComplete}
               onUploadError={handleError}
@@ -132,27 +195,16 @@ export default function ImageUploadField({
               }}
               content={{
                 uploadIcon: <Upload className="w-8 h-8" />,
-                label: isUploading
-                  ? `Uploading... ${Math.round(uploadProgress)}%`
-                  : `Drag & drop images here or click to browse`,
-                allowedContent: `JPG, PNG, JPEG up to 8MB each (${remainingSlots} slots remaining)`,
-                button: isUploading ? "Uploading..." : "Choose Files",
+                label: "Drag & drop images here or click to browse",
+                allowedContent: `JPG, PNG, JPEG up to 8MB each • Select multiple files`,
+                button: "Choose Files",
               }}
-              disabled={isUploading}
+              disabled={!canUploadMore}
             />
-
-            {isUploading && (
-              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            )}
           </div>
         )}
 
-        {!canUploadMore && (
+        {!canUploadMore && uploadStates.size === 0 && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
             <ImageIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-500">
@@ -162,14 +214,14 @@ export default function ImageUploadField({
         )}
       </div>
 
-      {required && value.length === 0 && (
+      {required && value.length === 0 && uploadStates.size === 0 && (
         <div className="flex items-center gap-2 text-red-600 text-sm">
           <AlertCircle className="w-4 h-4" />
           <span>At least one image is required</span>
         </div>
       )}
 
-      {/* Image Preview Grid - existing code */}
+      {/* Uploaded Images */}
       {value.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Uploaded Images</h4>
@@ -205,10 +257,15 @@ export default function ImageUploadField({
                   <button
                     type="button"
                     onClick={() => handleRemove(index)}
-                    className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-colors"
+                    disabled={deletingImages.has(url)}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-full p-2 transition-colors flex items-center justify-center"
                     aria-label={`Remove image ${index + 1}`}
                   >
-                    <X className="w-4 h-4" />
+                    {deletingImages.has(url) ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <X className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
 

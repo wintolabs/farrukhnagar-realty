@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import { Property } from "@/types/property";
-import { Save, AlertCircle, Check } from "lucide-react";
+import { AlertCircle, Check, X } from "lucide-react";
 
 type PropertyFormProps = {
   mode: "create" | "edit";
@@ -24,10 +24,10 @@ export default function PropertyForm({
     property?.images || []
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  const [allUploadedImages, setAllUploadedImages] = useState<string[]>([]); // Track all uploaded images
 
   const [formData, setFormData] = useState({
     title: property?.title || "",
@@ -40,33 +40,53 @@ export default function PropertyForm({
     description: property?.description || "",
   });
 
-  // Auto-save draft functionality
-  useEffect(() => {
-    if (mode === "create" && hasUnsavedChanges) {
-      const draftKey = "property-draft";
-      const draftData = { formData, uploadedUrls };
-      localStorage.setItem(draftKey, JSON.stringify(draftData));
-    }
-  }, [formData, uploadedUrls, hasUnsavedChanges, mode]);
-
-  // Load draft on create mode
+  // Clear draft and uploaded images on mount for create mode
   useEffect(() => {
     if (mode === "create") {
       const draftKey = "property-draft";
-      const savedDraft = localStorage.getItem(draftKey);
-      if (savedDraft) {
-        try {
-          const { formData: savedFormData, uploadedUrls: savedUrls } =
-            JSON.parse(savedDraft);
-          setFormData(savedFormData);
-          setUploadedUrls(savedUrls);
-          toast.info("Draft restored from previous session");
-        } catch (error) {
-          console.error("Failed to restore draft:", error);
-        }
-      }
+      localStorage.removeItem(draftKey);
     }
   }, [mode]);
+
+  // Track all uploaded images for cleanup
+  const handleImageChange = (urls: string[]) => {
+    setUploadedUrls(urls);
+    // Keep track of all images that were uploaded during this session
+    setAllUploadedImages((prev) => [...new Set([...prev, ...urls])]);
+
+    // Clear validation error for images
+    if (validationErrors.images) {
+      setValidationErrors((prev) => ({ ...prev, images: "" }));
+    }
+  };
+
+  // Handle image deletion callback
+  const handleImageDeleted = (deletedUrl: string) => {
+    // Remove from tracking
+    setAllUploadedImages((prev) => prev.filter((url) => url !== deletedUrl));
+  };
+
+  // Delete all uploaded images from storage
+  const deleteAllUploadedImages = async () => {
+    const imagesToDelete = allUploadedImages.filter(
+      (url) => !property?.images?.includes(url)
+    );
+
+    for (const url of imagesToDelete) {
+      try {
+        const fileKey = url.split("/").pop();
+        if (fileKey) {
+          await fetch("/api/uploadthing/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fileKey }),
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting image:", url, error);
+      }
+    }
+  };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -106,7 +126,6 @@ export default function PropertyForm({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setHasUnsavedChanges(true);
 
     // Clear validation error for this field
     if (validationErrors[name]) {
@@ -151,11 +170,6 @@ export default function PropertyForm({
         );
       }
 
-      // Clear draft on successful submission
-      if (mode === "create") {
-        localStorage.removeItem("property-draft");
-      }
-
       router.push("/admin");
     } catch (err) {
       console.error("Form submission error:", err);
@@ -165,48 +179,42 @@ export default function PropertyForm({
     }
   };
 
-  const clearDraft = () => {
-    localStorage.removeItem("property-draft");
-    setFormData({
-      title: "",
-      price: "",
-      location: "",
-      area: "",
-      type: "Residential",
-      status: "Available",
-      tags: "",
-      description: "",
-    });
-    setUploadedUrls([]);
-    setHasUnsavedChanges(false);
-    toast.success("Draft cleared");
+  const handleCancel = async () => {
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel? All changes and uploaded images will be lost."
+    );
+
+    if (confirmCancel) {
+      // Delete all uploaded images
+      await deleteAllUploadedImages();
+
+      // Clear form data
+      setFormData({
+        title: "",
+        price: "",
+        location: "",
+        area: "",
+        type: "Residential",
+        status: "Available",
+        tags: "",
+        description: "",
+      });
+      setUploadedUrls([]);
+      setAllUploadedImages([]);
+
+      toast.success("Changes discarded and images cleaned up");
+      router.push("/admin");
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Form Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
             {mode === "edit" ? "Edit Property" : "Create New Property"}
           </h2>
-          {hasUnsavedChanges && mode === "create" && (
-            <p className="text-sm text-amber-600 flex items-center gap-1 mt-1">
-              <Save className="w-4 h-4" />
-              Draft auto-saved
-            </p>
-          )}
         </div>
-
-        {mode === "create" && (
-          <button
-            type="button"
-            onClick={clearDraft}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            Clear Draft
-          </button>
-        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -386,13 +394,8 @@ export default function PropertyForm({
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <ImageUploadField
             value={uploadedUrls}
-            onChange={(urls) => {
-              setUploadedUrls(urls);
-              setHasUnsavedChanges(true);
-              if (validationErrors.images) {
-                setValidationErrors((prev) => ({ ...prev, images: "" }));
-              }
-            }}
+            onChange={handleImageChange}
+            onImageDeleted={handleImageDeleted}
             required
           />
           {validationErrors.images && (
@@ -403,7 +406,7 @@ export default function PropertyForm({
           )}
         </div>
 
-        {/* Submit Button */}
+        {/* Action Buttons */}
         <div className="flex gap-4">
           <button
             type="submit"
@@ -425,9 +428,10 @@ export default function PropertyForm({
 
           <button
             type="button"
-            onClick={() => router.push("/admin")}
-            className="px-6 py-4 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            onClick={handleCancel}
+            className="px-6 py-4 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
+            <X className="w-5 h-5" />
             Cancel
           </button>
         </div>
