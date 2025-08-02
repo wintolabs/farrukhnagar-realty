@@ -10,7 +10,7 @@ export function ContactCTA({ propertyTitle }: { propertyTitle: string }) {
     `Hello, I'm interested in the property: "${propertyTitle}". Please share more details.`
   );
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/91${whatsappNumber}?text=${encodedMessage}`;
 
   return (
     <div className="mt-10 border-t pt-6">

@@ -3,6 +3,9 @@ import { Landmark, Phone, Mail } from "lucide-react";
 import Image from "next/image";
 
 export function Footer() {
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9876543210";
+  const email = process.env.ADMIN_EMAIL || "farrukhnagarrealty@gmail.com";
+
   return (
     <footer className="bg-white py-8 sm:py-10 mt-8 sm:mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-start md:justify-between gap-8 sm:gap-10 lg:gap-12">
@@ -64,21 +67,19 @@ export function Footer() {
           </div>
 
           <a
-            href="tel:+911234567890"
+            href={`tel:+91${number}`}
             className="flex items-center gap-2 text-gray-900 hover:text-emerald-600 hover:underline text-sm sm:text-base transition-colors justify-center md:justify-start"
           >
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-            <span>+91 12345 67890</span>
+            <span>+91 {number}</span>
           </a>
 
           <a
-            href="mailto:farrukhnagarrealty@gmail.com"
+            href={`mailto:${email}`}
             className="flex items-center gap-2 text-gray-900 hover:text-emerald-600 hover:underline text-sm sm:text-base transition-colors justify-center md:justify-start break-all sm:break-normal"
           >
             <Mail className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-            <span className="text-xs sm:text-sm lg:text-base">
-              farrukhnagarrealty@gmail.com
-            </span>
+            <span className="text-xs sm:text-sm lg:text-base">{email}</span>
           </a>
         </div>
       </div>

@@ -54,7 +54,7 @@ export default function Contact() {
           {/* Responsive CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 lg:gap-12 items-center justify-center lg:justify-start">
             <a
-              href={`https://wa.me/${whatsappNumber}?text=Hi, I'm interested in a property.`}
+              href={`https://wa.me/91${whatsappNumber}?text=Hi, I'm interested in a property.`}
               target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col items-center focus:outline-none transform hover:scale-105 transition-all duration-200"
