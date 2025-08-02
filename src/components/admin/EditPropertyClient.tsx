@@ -1,3 +1,5 @@
+// src/components/admin/EditPropertyClient.tsx
+
 "use client";
 
 import { Property } from "@/types/property";

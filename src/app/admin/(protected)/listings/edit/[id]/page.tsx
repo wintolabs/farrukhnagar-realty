@@ -1,3 +1,5 @@
+// src/app/admin/(protected)/listings/edit/[id]/page.tsx
+
 import EditPropertyClient from "@/components/admin/EditPropertyClient";
 import { getPropertyById } from "@/lib/firestore";
 

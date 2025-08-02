@@ -12,7 +12,6 @@ export function FeaturedListings({ properties }: { properties: Property[] }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [itemsPerSlide, setItemsPerSlide] = useState(3);
 
-  // Responsive items per slide
   useEffect(() => {
     const updateItemsPerSlide = () => {
       if (window.innerWidth < 640) {

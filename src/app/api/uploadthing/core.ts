@@ -1,9 +1,15 @@
+// src/app/api/uploadthing/core.ts
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 4 } })
+  imageUploader: f({
+    image: {
+      maxFileSize: "8MB",
+      maxFileCount: 10, // Allow up to 10 images for property listings
+    },
+  })
     .middleware(async ({ req }) => {
       const cookieHeader = req.headers.get("cookie") || "";
 
@@ -21,6 +27,8 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ file, metadata }) => {
       console.log("✅ Upload complete by:", metadata.uploadedBy);
       console.log("📸 File URL:", file.url);
+      console.log("📏 File size:", file.size);
+      console.log("📄 File type:", file.type);
     }),
 } satisfies FileRouter;
 

@@ -1,3 +1,5 @@
+// src/components/admin/AdminDashboardClient.tsx
+
 "use client";
 
 import { Property } from "@/types/property";
@@ -58,7 +60,7 @@ export default function AdminDashboardClient({
       </main>
 
       <Link
-        href="/admin/create"
+        href="/admin/listings/create"
         className="fixed bottom-6 right-6 flex items-center gap-2 bg-black text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-800 transition"
       >
         <Plus size={20} />

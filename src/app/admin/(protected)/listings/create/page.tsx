@@ -1,3 +1,4 @@
+// src/app/admin/(protected)/listings/create/page.tsx
 "use client";
 
 import { addProperty } from "@/lib/firestore";

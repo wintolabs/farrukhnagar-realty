@@ -1,3 +1,5 @@
+// src/app/admin/(protected)/layout.tsx
+
 import { AdminHeader } from "@/components/layout/AdminHeader";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminSidebarProvider } from "@/components/layout/AdminSidebarContext";

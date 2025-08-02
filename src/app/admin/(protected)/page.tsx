@@ -1,3 +1,5 @@
+// src/app/admin/(protected)/page.tsx
+
 import { getAllProperties, getLeads } from "@/lib/firestore";
 import AdminDashboardClient from "@/components/admin/AdminDashboardClient";
 
