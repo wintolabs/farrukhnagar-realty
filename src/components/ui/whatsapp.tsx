@@ -1,28 +1,59 @@
-// components/ui/AnimatedWhatsapp.tsx
 "use client";
 
-import { IconBrandWhatsapp } from "@tabler/icons-react";
-import React from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
-interface AnimatedWhatsappProps {
-  phone?: string;
+interface WhatsAppProps {
+  phoneNumber?: string;
   className?: string;
+  variant?: "floating" | "header";
 }
 
-export function AnimatedWhatsapp({
-  phone = "919XXXXXXXXX",
+export function WhatsApp({
+  phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9876543210",
   className = "",
-}: AnimatedWhatsappProps) {
+  variant = "floating",
+}: WhatsAppProps) {
+  if (variant === "floating") {
+    // Original floating version
+    return (
+      <div
+        className={`fixed bottom-6 right-6 block lg:hidden z-50 ${className}`}
+      >
+        <a
+          href={`https://wa.me/91${phoneNumber}?text=Hi,  I'm interested in your real estate services in Farrukhnagar.`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-24 h-24 hover:scale-110 transition-transform duration-200"
+          aria-label="Chat on WhatsApp"
+        >
+          <DotLottieReact
+            src="/lottie/whatsapp.json"
+            loop
+            autoplay
+            className="w-full h-full"
+          />
+        </a>
+      </div>
+    );
+  }
+
+  // Header version
   return (
-    <a
-      href={`https://wa.me/${phone}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp"
-      className={`flex items-center gap-2 px-4 py-2 bg-emerald-600 rounded-full shadow text-white font-semibold transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700 ${className}`}
-    >
-      <IconBrandWhatsapp className="w-6 h-6 animate-pulse" />
-      <span className="hidden sm:inline">Chat</span>
-    </a>
+    <div className={` block z-50 ${className}`}>
+      <a
+        href={`https://wa.me/91${phoneNumber}?text=Hi,  I'm interested in your real estate services in Farrukhnagar.`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-16 h-16 hover:scale-110 transition-transform duration-200"
+        aria-label="Chat on WhatsApp"
+      >
+        <DotLottieReact
+          src="/lottie/whatsapp.json"
+          loop
+          autoplay
+          className="w-full h-full"
+        />
+      </a>
+    </div>
   );
 }

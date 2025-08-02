@@ -9,10 +9,10 @@ import {
   NavBody,
   NavItems,
 } from "@/components/ui/resizable-navbar";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { WhatsApp } from "../ui/whatsapp";
 
 const navItems = [
   { name: "Home", link: "/" },
@@ -52,29 +52,12 @@ export function Header() {
             className="hidden lg:flex gap-4 xl:gap-8 text-sm lg:text-base font-light text-gray-700 hover:text-gray-900 transition-colors"
           />
 
-          <Button
-            asChild
-            style={{
-              boxShadow:
-                "rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset",
-            }}
-            className="hidden sm:flex px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-6 rounded-full font-normal text-sm sm:text-base lg:text-md text-black bg-white/90 border-1 border-gray-400 hover:bg-white/20 transition cursor-pointer"
-          >
-            <Link href="/contact">Contact Us</Link>
-          </Button>
-
-          <Button
-            asChild
-            className="flex sm:hidden px-3 py-2 rounded-full font-normal text-sm text-black bg-white/90 hover:bg-white/20 transition cursor-pointer"
-          >
-            <Link href="/contact">Contact</Link>
-          </Button>
+          <WhatsApp variant="header" />
         </NavBody>
 
         {/* Mobile Navigation */}
         <MobileNav className="lg:hidden bg-white">
           <MobileNavHeader className="px-4 sm:px-6 py-3 bg-white">
-            {/* ☝️ REMOVED: border-b border-gray-200 */}
             <Link href="/" className="flex-shrink-0">
               <Logo />
             </Link>
@@ -89,7 +72,7 @@ export function Header() {
             onClose={() => setIsMobileMenuOpen(false)}
             className="bg-white shadow-lg"
           >
-            {/* Mobile Navigation Links - NO DIVIDERS */}
+            {/* Mobile Navigation Links */}
             <div className="py-2 bg-white">
               {navItems.map((item, idx) => (
                 <Link
@@ -101,22 +84,6 @@ export function Header() {
                   {item.name}
                 </Link>
               ))}
-            </div>
-
-            {/* Mobile Contact Button - WHITE BACKGROUND */}
-            <div className="p-4 sm:p-6 bg-white">
-              {/* ☝️ CHANGED: bg-gray-50 → bg-white */}
-              <Button
-                asChild
-                className="w-full px-6 py-3 sm:py-4 rounded-full font-medium text-base text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-lg"
-              >
-                <Link
-                  href="/contact"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Contact Us
-                </Link>
-              </Button>
             </div>
           </MobileNavMenu>
         </MobileNav>

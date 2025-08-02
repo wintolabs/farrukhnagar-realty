@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Analytics } from "@vercel/analytics/next";
+import { WhatsApp } from "@/components/ui/whatsapp";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function PublicLayout({
         <main className="pt-32">
           {children} <Analytics />
         </main>
+        <WhatsApp variant="floating" />
         <Footer />
         <Toaster />
       </body>
