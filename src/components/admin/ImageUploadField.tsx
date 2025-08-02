@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 type ImageUploadFieldProps = {
@@ -32,15 +32,26 @@ export default function ImageUploadField({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
+  const uploadContainerRef = useRef<HTMLDivElement>(null);
 
   const canUploadMore = value.length < maxImages;
   const remainingSlots = maxImages - value.length;
   const totalUploaded = value.length;
 
+  // Enhanced reset function that forces component remount
   const resetUploader = useCallback(() => {
+    console.log("Resetting uploader...");
     setUploaderKey((prev) => prev + 1);
     setIsUploading(false);
     setUploadProgress(0);
+
+    // Additional cleanup: try to clear any file input values
+    setTimeout(() => {
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => {
+        (input as HTMLInputElement).value = "";
+      });
+    }, 100);
   }, []);
 
   // Delete image from UploadThing storage
@@ -71,18 +82,15 @@ export default function ImageUploadField({
       setDeletingImages((prev) => new Set([...prev, urlToRemove]));
 
       try {
-        // Remove from UI immediately
         const updated = value.filter((_, index) => index !== indexToRemove);
         onChange(updated);
 
-        // Delete from storage
         await deleteImageFromStorage(urlToRemove);
         onImageDeleted?.(urlToRemove);
 
         toast.success("Image deleted successfully");
       } catch (error) {
         console.error("Error removing image:", error);
-        // Restore UI on failure
         onChange(value);
         toast.error("Failed to delete image");
       } finally {
@@ -96,10 +104,15 @@ export default function ImageUploadField({
     [value, onChange, deleteImageFromStorage, onImageDeleted]
   );
 
-  const handleUploadBegin = useCallback(() => {
-    console.log("Upload started");
+  const handleUploadBegin = useCallback((fileName: string) => {
+    console.log("Upload started for file:", fileName);
     setIsUploading(true);
     setUploadProgress(0);
+
+    // Reset the component immediately to clear file input state
+    setTimeout(() => {
+      setUploaderKey((prev) => prev + 1);
+    }, 50);
   }, []);
 
   const handleUploadProgress = useCallback((progress: number) => {
@@ -109,6 +122,8 @@ export default function ImageUploadField({
 
   const handleComplete = useCallback(
     (res: { url: string; name: string }[] | undefined) => {
+      console.log("Upload completed, resetting...");
+
       if (!res) {
         toast.error("No files uploaded");
         resetUploader();
@@ -135,8 +150,9 @@ export default function ImageUploadField({
 
   const handleError = useCallback(
     (error: Error) => {
-      console.error("Upload failed:", error);
+      console.error("Upload failed, resetting...", error);
       toast.error(`Upload failed: ${error.message}`);
+
       resetUploader();
     },
     [resetUploader]
@@ -151,6 +167,17 @@ export default function ImageUploadField({
     },
     [value, onChange]
   );
+
+  // Click handler to ensure component is ready
+  const handleUploadAreaClick = useCallback(() => {
+    console.log("Upload area clicked - ensuring fresh state");
+    if (!isUploading) {
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => {
+        (input as HTMLInputElement).value = "";
+      });
+    }
+  }, [isUploading]);
 
   return (
     <div className="space-y-4">
@@ -179,9 +206,13 @@ export default function ImageUploadField({
         </div>
 
         {canUploadMore && (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors">
+          <div
+            ref={uploadContainerRef}
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-emerald-400 transition-colors"
+            onClick={handleUploadAreaClick}
+          >
             <UploadDropzone
-              key={uploaderKey}
+              key={`upload-${uploaderKey}-${Date.now()}`}
               endpoint="imageUploader"
               onUploadBegin={handleUploadBegin}
               onUploadProgress={handleUploadProgress}
