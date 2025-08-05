@@ -1,5 +1,6 @@
 // src/app/api/uploadthing/core.ts
 import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { jwtVerify } from "jose";
 
 const f = createUploadthing();
 
@@ -11,36 +12,41 @@ export const ourFileRouter = {
     },
   })
     .middleware(async ({ req }) => {
-      const cookieHeader = req.headers.get("cookie") || "";
+      try {
+        const cookieHeader = req.headers.get("cookie") || "";
 
-      const isAdmin = cookieHeader
-        .split(";")
-        .map((c) => c.trim())
-        .some((c) => c === "admin-session=1");
+        // ✅ Extract JWT token instead of simple session cookie
+        const adminTokenMatch = cookieHeader.match(/admin-token=([^;]+)/);
+        const token = adminTokenMatch ? adminTokenMatch[1] : null;
 
-      if (!isAdmin) {
-        throw new Error("Unauthorized upload");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        // ✅ Verify JWT token
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+        const { payload } = await jwtVerify(token, secret);
+
+        if (!payload || payload.role !== "admin") {
+          throw new Error("Invalid authentication token");
+        }
+
+        return { uploadedBy: payload.userId as string };
+      } catch (error) {
+        console.error("❌ UploadThing middleware error:", error);
+        throw new Error("Unauthorized upload - invalid token");
       }
-
-      return { uploadedBy: "admin" };
     })
     .onUploadComplete(async ({ file, metadata }) => {
       try {
-        console.log("✅ Upload complete by:", metadata.uploadedBy);
-        console.log("📸 File URL:", file.url); // Legacy
-        console.log("📸 File UFS URL:", file.ufsUrl); // New preferred
-        console.log("📏 File size:", file.size);
-        console.log("📄 File type:", file.type);
-
-        // ✅ Return both URLs for compatibility
         return {
           uploadedBy: metadata.uploadedBy,
-          fileUrl: file.ufsUrl || file.url, // Prefer ufsUrl
+          fileUrl: file.ufsUrl || file.url,
           fileName: file.name,
           success: true,
         };
       } catch (error) {
-        console.error("❌ Callback error:", error);
+        console.error("❌ Upload callback error:", error);
         return {
           uploadedBy: metadata.uploadedBy,
           error: "Callback processing failed but upload succeeded",

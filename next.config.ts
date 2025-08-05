@@ -10,7 +10,21 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      // Add backup for other UploadThing domains
+      // ✅ Add the new UploadThing subdomain
+      {
+        protocol: "https",
+        hostname: "05z3nnmdtq.ufs.sh",
+        port: "",
+        pathname: "/**",
+      },
+      // ✅ Add wildcard pattern for UploadThing subdomains
+      {
+        protocol: "https",
+        hostname: "*.ufs.sh",
+        port: "",
+        pathname: "/**",
+      },
+      // Backup for other UploadThing domains
       {
         protocol: "https",
         hostname: "uploadthing.com",

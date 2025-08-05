@@ -8,20 +8,20 @@ export function PropertyCard({ property }: { property: Property }) {
       href={`/listings/${property.id}`}
       className="block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
     >
-      {/* Property Image - Landing page style */}
-      <div className="aspect-[5/3] bg-gray-200 overflow-hidden relative">
+      {/* ✅ Fixed Image Container - Shows Full Image */}
+      <div className="relative w-full h-48 sm:h-56 bg-gray-100 overflow-hidden">
         <Image
           src={property.images[0] || "/images/hero.jpg"}
           alt={property.title}
           fill
-          className="object-cover hover:scale-105 transition-transform duration-300"
+          className="object-contain hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
 
-        {/* Status Badge - Top left */}
-        <div className="absolute top-4 left-4">
+        {/* Status Badge - Top left with higher z-index */}
+        <div className="absolute top-4 left-4 z-10">
           <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-md ${
               property.status === "Sold"
                 ? "bg-red-500 text-white"
                 : property.status === "Available"
@@ -34,7 +34,7 @@ export function PropertyCard({ property }: { property: Property }) {
         </div>
       </div>
 
-      {/* Card Content - Landing page typography */}
+      {/* Card Content - Keep existing styling */}
       <div className="p-6">
         {/* Property Title */}
         <h3

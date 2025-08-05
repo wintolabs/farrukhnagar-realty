@@ -11,11 +11,8 @@ export default function CreatePropertyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 py-10 px-4">
+    <main className="min-h-screen py-10 px-4">
       <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Create New Property
-        </h1>
         <PropertyForm mode="create" onSubmit={handleCreate} />
       </div>
     </main>

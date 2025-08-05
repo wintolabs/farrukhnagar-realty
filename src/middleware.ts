@@ -1,10 +1,9 @@
-// src/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = req.cookies.get("admin-session")?.value;
 
   // Allow UploadThing API routes to pass through without auth check
   if (pathname.startsWith("/api/uploadthing")) {
@@ -20,11 +19,31 @@ export function middleware(req: NextRequest) {
   const isProtectedPage = pathname.startsWith("/admin");
 
   if (isProtectedPage) {
-    if (session === "1") {
-      return NextResponse.next();
+    const token = req.cookies.get("admin-token")?.value;
+
+    if (!token) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
     }
-    // Redirect to login if not authenticated
-    return NextResponse.redirect(new URL("/admin/login", req.url));
+
+    try {
+      // Use jose for Edge Runtime compatibility with proper async/await
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+      // Properly await the JWT verification
+      await jwtVerify(token, secret);
+      return NextResponse.next();
+    } catch {
+      // Invalid or expired token - clear cookie and redirect
+      const response = NextResponse.redirect(new URL("/admin/login", req.url));
+      response.cookies.set("admin-token", "", {
+        expires: new Date(0),
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      return response;
+    }
   }
 
   // Everything else is public
@@ -32,5 +51,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/uploadthing/:path*"],
+  matcher: ["/admin/:path*"],
 };

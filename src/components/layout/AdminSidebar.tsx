@@ -1,31 +1,33 @@
 "use client";
 
-import {
-  Home,
-  List,
-  FileText,
-  User,
-  LogOut,
-  ChevronDown,
-  MailIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAdminSidebar } from "@/components/layout/AdminSidebarContext";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAdminSidebar } from "@/components/layout/AdminSidebarContext";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  ChevronDown,
+  FileText,
+  Home,
+  List,
+  Loader2,
+  LogOut,
+  MailIcon,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const dummyProfile = {
-  name: "Admin",
-  email: "me@example.com",
+  name: "Gaurav",
+  username: "gaurav",
   avatarUrl: "/images/profile.png",
 };
 
@@ -48,11 +50,35 @@ export function AdminSidebar({
   newContactLeadCount?: number;
 }) {
   const pathname = usePathname();
+  const router = useRouter(); // ✅ Add router
   const { sidebarOpen, setSidebarOpen } = useAdminSidebar();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // ✅ Enhanced logout function
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/admin/login";
+    setIsLoggingOut(true);
+
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        toast.success("Logged out successfully");
+        // Use Next.js router instead of window.location
+        router.push("/admin/login");
+      } else {
+        toast.error("Failed to logout - please try again");
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Network error during logout");
+      setIsLoggingOut(false);
+    }
   };
 
   // Sidebar content: one solid structure for both desktop and mobile
@@ -96,7 +122,10 @@ export function AdminSidebar({
       <div className="px-4 pb-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 w-full rounded-lg p-2 hover:bg-gray-100 transition focus:outline-none">
+            <button
+              className="flex items-center gap-3 w-full rounded-lg p-2 hover:bg-gray-100 transition focus:outline-none disabled:opacity-50"
+              disabled={isLoggingOut}
+            >
               <Image
                 src={dummyProfile.avatarUrl}
                 alt={dummyProfile.name}
@@ -108,10 +137,17 @@ export function AdminSidebar({
               <div className="flex flex-col text-left flex-1">
                 <span className="text-sm font-medium">{dummyProfile.name}</span>
                 <span className="text-xs text-gray-500">
-                  {dummyProfile.email}
+                  @{dummyProfile.username}
                 </span>
               </div>
-              <ChevronDown size={18} className="text-gray-400 ml-auto" />
+              {isLoggingOut ? (
+                <Loader2
+                  size={18}
+                  className="text-gray-400 ml-auto animate-spin"
+                />
+              ) : (
+                <ChevronDown size={18} className="text-gray-400 ml-auto" />
+              )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
@@ -119,20 +155,34 @@ export function AdminSidebar({
               <div className="flex flex-col">
                 <span className="font-semibold">{dummyProfile.name}</span>
                 <span className="text-xs text-gray-500">
-                  {dummyProfile.email}
+                  @{dummyProfile.username}
                 </span>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+
+            {/* <DropdownMenuItem
+              className="flex items-center gap-2 cursor-pointer"
+              disabled={isLoggingOut}
+            >
               <User size={16} /> Profile
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="flex items-center gap-2 text-red-600 cursor-pointer"
+              className="flex items-center gap-2 text-red-600 cursor-pointer disabled:opacity-50"
               onClick={handleLogout}
+              disabled={isLoggingOut}
             >
-              <LogOut size={16} /> Logout
+              {isLoggingOut ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Logging out...</span>
+                </>
+              ) : (
+                <>
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </>
+              )}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

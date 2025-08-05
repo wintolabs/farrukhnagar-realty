@@ -11,25 +11,65 @@ export async function sendLeadEmails(lead: {
   budgetRange?: string;
   preferredContactMethod?: string;
 }) {
+  // ─────────────────────────────────────────────────────────
+  // ADMIN NOTIFICATION (property inquiry) ───────────────────
   const adminHtml = `
-    <p><strong>New property inquiry received:</strong></p>
-    <ul>
-      <li><strong>Name:</strong> ${lead.name}</li>
-      <li><strong>Email:</strong> ${lead.email}</li>
-      <li><strong>Phone:</strong> ${lead.phone}</li>
-      <li><strong>Property:</strong> ${lead.propertyTitle}</li>
-      <li><strong>Budget Range:</strong> ${lead.budgetRange || "Not specified"}</li>
-      <li><strong>Preferred Contact:</strong> ${lead.preferredContactMethod || "Not specified"}</li>
-      <li><strong>Message:</strong> ${lead.message || "—"}</li>
-    </ul>
-  `;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>New Property Inquiry</title>
+      <style>
+        body  { margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#333; }
+        .box  { max-width:600px;margin:0 auto;padding:24px; }
+        h3    { margin:0 0 16px;font-size:20px;color:#111; }
+        table { width:100%;border-collapse:collapse; }
+        td    { padding:8px 0;vertical-align:top; }
+        .lbl  { width:160px;font-weight:600;color:#555; }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h3>🏡 New Property Inquiry</h3>
+        <table>
+          <tr><td class="lbl">Name:</td><td>${lead.name}</td></tr>
+          <tr><td class="lbl">Email:</td><td>${lead.email}</td></tr>
+          <tr><td class="lbl">Phone:</td><td>${lead.phone}</td></tr>
+          <tr><td class="lbl">Property:</td><td>${lead.propertyTitle}</td></tr>
+          <tr><td class="lbl">Budget Range:</td><td>${lead.budgetRange || "Not specified"}</td></tr>
+          <tr><td class="lbl">Preferred Contact:</td><td>${lead.preferredContactMethod || "Not specified"}</td></tr>
+          <tr><td class="lbl">Message:</td><td>${(lead.message || "—").replace(/\n/g, "<br/>")}</td></tr>
+        </table>
+      </div>
+    </body>
+    </html>
+    `;
 
+  // ─────────────────────────────────────────────────────────
+  // USER AUTO-REPLY (property inquiry) ──────────────────────
   const userHtml = `
-    <p>Hi ${lead.name},</p>
-    <p>Thank you for your interest in <strong>${lead.propertyTitle}</strong>.</p>
-    <p>Our team will review your inquiry and get in touch with you shortly.</p>
-    <p>– Farrukhnagar Realty</p>
-  `;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Your Inquiry – Farrukhnagar Realty</title>
+      <style>
+        body { margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#333; }
+        .box { max-width:600px;margin:0 auto;padding:24px;line-height:1.55; }
+        h2  { margin:0 0 16px;font-size:18px;color:#111; }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h2>Hi ${lead.name},</h2>
+        <p>Thank you for your interest in <strong>${lead.propertyTitle}</strong>.</p>
+        <p>Our team will review your inquiry and contact you shortly to discuss the details.</p>
+        <p>If you have additional questions, feel free to reply to this email or call us at <strong>+91 12345 67890</strong>.</p>
+        <p style="margin:32px 0 0;">– Farrukhnagar Realty</p>
+      </div>
+    </body>
+    </html>
+    `;
 
   try {
     await resend.emails.send({

@@ -1,90 +1,88 @@
-import { PropertyInquiryForm } from "@/components/forms/PropertyInquiryForm";
+// src/app/listings/[id]/page.tsx
+import { Suspense } from "react";
 import { getPropertyById } from "@/lib/firestore";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { PropertyHeader } from "@/components/property/PropertyHeader";
+import { PropertyImageGallery } from "@/components/property/PropertyImageGallery";
+import { PropertyDetails } from "@/components/property/PropertyDetails";
+import { PropertyInquirySection } from "@/components/property/PropertyInquirySection";
 
 interface PropertyPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PropertyPage({ params }: PropertyPageProps) {
-  const { id: propertyId } = await params;
+function PropertyPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <Skeleton className="h-12 w-3/4 mb-4" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16" />
+            ))}
+          </div>
+        </div>
 
-  const property = await getPropertyById(propertyId);
-  if (!property || property.isDeleted) return notFound();
+        {/* Gallery Skeleton */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-12">
+          <Skeleton className="h-96 rounded-2xl" />
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-44 rounded-xl" />
+            ))}
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Skeleton className="h-64 rounded-2xl" />
+          </div>
+          <Skeleton className="h-96 rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function PropertyPageContent({ id }: { id: string }) {
+  const property = await getPropertyById(id);
+
+  if (!property || property.isDeleted) {
+    return notFound();
+  }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-16">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-4">{property.title}</h1>
+    <>
+      <PropertyHeader property={property} />
+      <PropertyImageGallery images={property.images} title={property.title} />
 
-      <div className="text-gray-600 mb-6 space-y-1">
-        <p>
-          <strong>Location:</strong> {property.location}
-        </p>
-        <p>
-          <strong>Price:</strong> ₹{property.price.toLocaleString()}
-        </p>
-        <p>
-          <strong>Area:</strong> {property.area}
-        </p>
-        <p>
-          <strong>Status:</strong>{" "}
-          <span
-            className={
-              property.status === "Sold"
-                ? "text-red-600 font-medium"
-                : "text-green-600 font-medium"
-            }
-          >
-            {property.status}
-          </span>
-        </p>
-        <p>
-          <strong>Type:</strong> {property.type}
-        </p>
-        {property.tags.length > 0 && (
-          <p>
-            <strong>Tags:</strong> {property.tags.join(", ")}
-          </p>
-        )}
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <PropertyDetails property={property} />
+        </div>
+        <div className="lg:col-span-1">
+          <PropertyInquirySection property={property} propertyId={id} />
+        </div>
       </div>
+    </>
+  );
+}
 
-      {property.description && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Description</h2>
-          <p className="text-gray-700 whitespace-pre-line">
-            {property.description}
-          </p>
-        </div>
-      )}
+export default async function PropertyPage({ params }: PropertyPageProps) {
+  const { id } = await params;
 
-      {property.images.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {property.images.map((url, index) => (
-            <div key={index} className="border rounded overflow-hidden">
-              <Image
-                src={url}
-                alt={`Property Image ${index + 1}`}
-                width={640}
-                height={480}
-                className="w-full h-60 object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {property.status !== "Sold" ? (
-        <PropertyInquiryForm
-          propertyId={String(propertyId)}
-          propertyTitle={property.title}
-        />
-      ) : (
-        <div className="mt-10 p-4 border rounded bg-gray-50 text-gray-700">
-          This property is marked as <strong>Sold</strong>. You can explore
-          other listings from our site.
-        </div>
-      )}
-    </main>
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <Suspense fallback={<PropertyPageSkeleton />}>
+          <PropertyPageContent id={id} />
+        </Suspense>
+      </div>
+    </div>
   );
 }
