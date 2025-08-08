@@ -24,13 +24,13 @@ const navItems = [
 const Logo = () => (
   <div className="flex items-center gap-2">
     <Image
-      src="/logo-3.png"
+      src="/logo-5.png"
       alt="Farrukhnagar Realty Logo"
       width={180}
-      height={48}
-      className="h-8 sm:h-9 lg:h-10 w-auto object-contain rounded-full"
+      height={50}
+      className="h-12 w-auto object-contain rounded-full"
       priority
-      sizes="(max-width: 640px) 120px, (max-width: 1024px) 150px, 180px"
+      sizes="(max-width: 640px) 180px, (max-width: 1024px) 200px, 260px"
     />
   </div>
 );

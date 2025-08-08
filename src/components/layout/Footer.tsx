@@ -4,22 +4,23 @@ import Image from "next/image";
 
 export function Footer() {
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9876543210";
-  const email = process.env.ADMIN_EMAIL || "farrukhnagarrealty@gmail.com";
+  const email =
+    process.env.NEXT_PUBLIC_ADMIN_EMAIL || "farrukhnagarrealty@gmail.com";
 
   return (
     <footer className="bg-white py-8 sm:py-10 mt-8 sm:mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-start md:justify-between gap-8 sm:gap-10 lg:gap-12">
         {/* Left: Logo - Responsive */}
-        <div className="flex flex-col gap-3 sm:gap-4 min-w-[120px] text-center md:text-left">
+        <div className="flex flex-col items-center gap-3 sm:gap-4 min-w-[160px] text-center">
           <Image
-            src="/logo-3.png"
-            alt="Logo"
-            width={280}
-            height={48}
-            className="rounded-xl w-auto h-8 sm:h-10 lg:h-12 mx-auto md:mx-0"
-            sizes="(max-width: 640px) 200px, (max-width: 1024px) 240px, 280px"
+            src="/logo-4.png"
+            alt="Farrukhnagar Realty Logo"
+            width={500}
+            height={400}
+            className="rounded-xl max-w-[140px] sm:max-w-[160px] lg:max-w-[160px] mx-auto object-contain"
+            sizes="(max-width: 640px) 140px, (max-width: 1024px) 160px, 160px"
           />
-          <p className="text-gray-700 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto md:mx-0">
+          <p className="text-gray-700 text-xs sm:text-sm leading-relaxed max-w-xs">
             Building trust in real estate since 2000.
           </p>
         </div>

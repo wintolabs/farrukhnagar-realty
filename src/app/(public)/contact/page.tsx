@@ -4,7 +4,8 @@ import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 export default function ContactPage() {
   const whatsappNumber =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9876543210";
-  const email = process.env.ADMIN_EMAIL || "farrukhnagarrealty@gmail.com";
+  const email =
+    process.env.NEXT_PUBLIC_ADMIN_EMAIL || "farrukhnagarrealty@gmail.com";
 
   const contactInfo = [
     {

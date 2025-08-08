@@ -6,7 +6,8 @@ import Image from "next/image";
 export default function Contact() {
   const whatsappNumber =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9876543210";
-  const email = process.env.ADMIN_EMAIL || "info@farrukhnagarrealty.com";
+  const email =
+    process.env.NEXT_PUBLIC_ADMIN_EMAIL || "info@farrukhnagarrealty.com";
 
   return (
     <section

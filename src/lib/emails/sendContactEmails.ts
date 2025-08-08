@@ -13,8 +13,8 @@ export async function sendContactEmails({
   phone?: string;
   message: string;
 }) {
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL!;
-  const SENDER_EMAIL = process.env.SENDER_EMAIL!;
+  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL!;
+  const SENDER_EMAIL = process.env.NEXT_PUBLIC_SENDER_EMAIL!;
 
   // ─────────────────────────────────────────────────────────
   // ADMIN NOTIFICATION (contact form) ───────────────────────

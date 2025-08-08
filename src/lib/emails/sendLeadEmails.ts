@@ -73,8 +73,8 @@ export async function sendLeadEmails(lead: {
 
   try {
     await resend.emails.send({
-      from: process.env.SENDER_EMAIL!,
-      to: process.env.ADMIN_EMAIL!,
+      from: process.env.NEXT_PUBLIC_SENDER_EMAIL!,
+      to: process.env.NEXT_PUBLIC_ADMIN_EMAIL!,
       subject: "📩 New Property Inquiry Received",
       html: adminHtml,
     });
@@ -84,7 +84,7 @@ export async function sendLeadEmails(lead: {
 
   try {
     await resend.emails.send({
-      from: process.env.SENDER_EMAIL!,
+      from: process.env.NEXT_PUBLIC_SENDER_EMAIL!,
       to: lead.email,
       subject: "Thank you for contacting Farrukhnagar Realty 🏠",
       html: userHtml,
