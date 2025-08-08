@@ -31,7 +31,7 @@ export default function PublicLayout({
       <body className="font-sans">
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
         <Header />
-        <main className="pt-24">
+        <main className="pt-26">
           {children} <Analytics />
         </main>
         <WhatsApp variant="floating" />
