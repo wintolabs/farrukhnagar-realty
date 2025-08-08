@@ -8,6 +8,8 @@ export async function POST(req: NextRequest) {
     const adminPassword = process.env.ADMIN_PASSWORD;
     const jwtSecret = process.env.JWT_SECRET;
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     // Enhanced validation
     if (!adminUsername || !adminPassword || !jwtSecret) {
       console.error(
@@ -58,10 +60,10 @@ export async function POST(req: NextRequest) {
       name: "admin-token",
       value: token,
       httpOnly: true,
-      secure: false, // Keep false for local testing
-      sameSite: "lax", // Keep lax for local testing
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
       path: "/",
-      maxAge: 60 * 60 * 2, // 2 hours
+      maxAge: 60 * 60 * 24, // 24 hours
     });
 
     return res;

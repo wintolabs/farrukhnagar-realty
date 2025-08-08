@@ -5,6 +5,8 @@ import { jwtVerify } from "jose";
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   // Allow UploadThing API routes to pass through without auth check
   if (pathname.startsWith("/api/uploadthing")) {
     return NextResponse.next();
@@ -39,8 +41,8 @@ export async function middleware(req: NextRequest) {
         expires: new Date(0),
         path: "/",
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: isProduction,
+        sameSite: isProduction ? "strict" : "lax",
       });
       return response;
     }

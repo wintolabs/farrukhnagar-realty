@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
+    const isProduction = process.env.NODE_ENV === "production";
+
     const res = NextResponse.json({
       success: true,
       message: "Logged out successfully",
@@ -12,8 +14,8 @@ export async function POST() {
       path: "/",
       expires: new Date(0),
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
     });
 
     return res;
