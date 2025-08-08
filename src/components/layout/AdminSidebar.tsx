@@ -92,7 +92,15 @@ export function AdminSidebar({
     <div className="flex flex-col h-screen bg-white border-r w-64">
       {/* Logo */}
       <div className="h-16 flex items-center justify-center border-b font-bold text-xl">
-        <span className="text-red-600">LOGO</span>
+        <Image
+          src="/logo-5.png"
+          alt="Farrukhnagar Realty Logo"
+          width={120}
+          height={34}
+          className="h-10 w-auto object-contain"
+          priority
+          sizes="120px"
+        />
       </div>
       {/* Nav */}
       <nav className="flex-1 flex flex-col py-4">

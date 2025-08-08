@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, User } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -63,14 +64,23 @@ export function LoginForm() {
   return (
     <div className="w-full flex flex-col items-center gap-10 px-4 min-h-screen justify-center">
       {/* Logo Section */}
-      <div className="text-center">
-        <div className="w-12 h-1 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full mx-auto mb-6"></div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Farrukhnagar Realty
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Administrative Portal
-        </p>
+      <div className="text-center flex flex-col items-center gap-4">
+        <Image
+          src="/logo-4.png"
+          alt="Farrukhnagar Realty Logo"
+          width={160}
+          height={128}
+          className="rounded-xl object-contain"
+          priority
+          sizes="(max-width: 640px) 120px, (max-width: 1024px) 140px, 160px"
+        />
+        <div>
+          <div className="w-12 h-1 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full mx-auto mb-4"></div>
+
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Administrative Portal
+          </p>
+        </div>
       </div>
 
       <Card
@@ -88,7 +98,7 @@ export function LoginForm() {
           animate-in fade-in-50 slide-in-from-bottom-4 duration-700
         "
       >
-        <CardHeader className="text-center pb-4 pt-2 px-6 sm:px-8 lg:px-12 xl:px-16">
+        <CardHeader className="text-center pb-4 pt-0 px-6 sm:px-8 lg:px-12 xl:px-16">
           <CardTitle className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-2">
             Welcome Back
           </CardTitle>

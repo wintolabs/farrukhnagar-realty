@@ -70,7 +70,7 @@ export function Header() {
           <MobileNavMenu
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
-            className="bg-white shadow-lg"
+            className="bg-white shadow-lg mt-2"
           >
             {/* Mobile Navigation Links */}
             <div className="py-2 bg-white">
