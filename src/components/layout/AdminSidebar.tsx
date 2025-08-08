@@ -9,7 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   ChevronDown,
   FileText,
@@ -198,8 +204,16 @@ export function AdminSidebar({
       </aside>
       {/* Mobile sidebar in Sheet */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64 h-screen fixed inset-0">
-          {SidebarContent}
+        <SheetContent side="left" className="p-0 w-64 z-50">
+          <VisuallyHidden>
+            <SheetTitle>Admin Navigation Menu</SheetTitle>
+            <SheetDescription>
+              Navigate through admin dashboard sections including leads,
+              listings, and contact management
+            </SheetDescription>
+          </VisuallyHidden>
+
+          <div className="flex flex-col h-full bg-white">{SidebarContent}</div>
         </SheetContent>
       </Sheet>
     </>
