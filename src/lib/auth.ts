@@ -1,3 +1,5 @@
+// src/lib/auth.ts
+
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
@@ -12,10 +14,7 @@ export async function verifyToken(): Promise<JWTPayload | null> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("admin-token")?.value;
-
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
     return decoded;

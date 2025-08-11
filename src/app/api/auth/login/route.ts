@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
       .sign(secret);
 
     // Success - set secure JWT cookie
-    const res = NextResponse.json({ success: true });
+
+    const res = NextResponse.json({ success: true, redirectUrl: "/admin" });
     res.cookies.set({
       name: "admin-token",
       value: token,
@@ -63,9 +64,8 @@ export async function POST(req: NextRequest) {
       secure: isProduction,
       sameSite: isProduction ? "strict" : "lax",
       path: "/",
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
     });
-
     return res;
   } catch (error) {
     console.error("Login API error:", error);

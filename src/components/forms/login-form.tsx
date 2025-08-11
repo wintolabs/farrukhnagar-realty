@@ -52,7 +52,9 @@ export function LoginForm() {
 
         if (res.ok && data.success) {
           toast.success("Login successful");
-          router.push("/admin");
+          const target = data.redirectUrl ?? "/admin";
+          router.replace(target);
+          router.refresh();
         } else {
           setError(data.error || "Invalid credentials");
         }
