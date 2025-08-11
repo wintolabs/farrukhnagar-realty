@@ -1,5 +1,7 @@
+// src/components/forms/login-form.tsx
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -62,7 +64,7 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-10 px-4 min-h-screen justify-center">
+    <div className="w-full flex flex-col items-center gap-6 md:gap-8 px-3 sm:px-6 min-h-screen justify-center">
       {/* Logo Section */}
       <div className="text-center flex flex-col items-center gap-4">
         <Image
@@ -76,7 +78,6 @@ export function LoginForm() {
         />
         <div>
           <div className="w-12 h-1 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-full mx-auto mb-4"></div>
-
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Administrative Portal
           </p>
@@ -85,20 +86,19 @@ export function LoginForm() {
 
       <Card
         className="
-          w-full                    /* Full width on mobile */
-          max-w-sm                  /* 384px - mobile/small screens */
-          sm:max-w-md               /* 448px - small tablets */
-          md:max-w-lg               /* 512px - tablets */
-          lg:max-w-2xl              /* 672px - small desktops */
-          xl:max-w-4xl              /* 896px - large desktops */
-          2xl:max-w-5xl             /* 1024px - extra large screens */
+          w-full
+          max-w-lg
+          sm:max-w-xl
+          md:max-w-2xl
+          lg:max-w-3xl
+          mx-auto
           backdrop-blur-md bg-white dark:bg-slate-900/60
           border border-white/40 dark:border-slate-700/60
           shadow-xl shadow-black/10 dark:shadow-black/40
           animate-in fade-in-50 slide-in-from-bottom-4 duration-700
         "
       >
-        <CardHeader className="text-center pb-4 pt-0 px-6 sm:px-8 lg:px-12 xl:px-16">
+        <CardHeader className="text-center pb-3 pt-0 px-4 sm:px-6 md:px-10">
           <CardTitle className="text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-2">
             Welcome Back
           </CardTitle>
@@ -108,7 +108,11 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent className="px-6 sm:px-8 lg:px-12 xl:px-16 pb-2 sm:pb-4 pt-2">
-          <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            className="space-y-5 sm:space-y-6"
+          >
             {/* Username Field */}
             <div className="space-y-4">
               <Label
@@ -138,7 +142,7 @@ export function LoginForm() {
                     hover:border-slate-300 dark:hover:border-slate-600
                     focus:bg-white dark:focus:bg-slate-800`}
                 />
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-slate-400 group-focus-within:text-slate-600 dark:group-focus-within:text-slate-300 transition-colors" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400 group-focus-within:text-slate-600 dark:group-focus-within:text-slate-300 transition-colors" />
               </div>
             </div>
 
@@ -171,7 +175,7 @@ export function LoginForm() {
                     hover:border-slate-300 dark:hover:border-slate-600
                     focus:bg-white dark:focus:bg-slate-800`}
                 />
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-slate-400 group-focus-within:text-slate-600 dark:group-focus-within:text-slate-300 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-400 group-focus-within:text-slate-600 dark:group-focus-within:text-slate-300 transition-colors" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -187,7 +191,6 @@ export function LoginForm() {
                 </button>
               </div>
 
-              {/* Error message */}
               {error && (
                 <div className="flex items-center gap-2 mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
@@ -198,7 +201,6 @@ export function LoginForm() {
               )}
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full h-14 bg-gradient-to-r from-indigo-600 to-blue-600
@@ -232,6 +234,17 @@ export function LoginForm() {
                 {new Date().getFullYear()} Farrukhnagar Realty
               </span>
             </p>
+
+            {/* Public site link (Next.js Link) */}
+            <div className="mt-3 text-center">
+              <Link
+                href="/"
+                className="text-sm text-slate-600 hover:text-slate-900 hover:underline underline-offset-4 transition-colors"
+                aria-label="Go to public website home"
+              >
+                ← Back to Public Site
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

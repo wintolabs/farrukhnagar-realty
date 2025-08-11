@@ -1,3 +1,4 @@
+// src/app/(public)/layout.tsx
 import "../globals.css";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
@@ -27,17 +28,16 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={poppins.variable}>
-      <body className="font-sans">
-        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-        <Header />
-        <main className="pt-26">
-          {children} <Analytics />
-        </main>
-        <WhatsApp variant="floating" />
-        <Footer />
-        <Toaster />
-      </body>
-    </html>
+    <div className={poppins.variable}>
+      <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+      <Header />
+      <main className="pt-26">
+        {children}
+        <Analytics />
+      </main>
+      <WhatsApp variant="floating" />
+      <Footer />
+      <Toaster />
+    </div>
   );
 }

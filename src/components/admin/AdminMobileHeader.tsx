@@ -14,11 +14,14 @@ export function AdminMobileHeader() {
         variant="ghost"
         size="sm"
         onClick={() => setSidebarOpen(true)}
-        className="p-2 hover:bg-gray-100"
+        className="hover:bg-gray-100 h-12 w-12 p-0 -m-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-md"
         aria-label="Open sidebar"
       >
-        <Menu size={24} className="text-gray-600" />
+        <span className="grid place-items-center w-full h-full">
+          <Menu className="size-8" />
+        </span>
       </Button>
+
       <div className="w-10" />
     </header>
   );

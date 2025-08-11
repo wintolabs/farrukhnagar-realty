@@ -54,6 +54,17 @@ export function Footer() {
           >
             Services
           </Link>
+
+          {/* Admin link (professional, subtle) */}
+          <Link
+            href="/admin"
+            prefetch={false}
+            className="text-sm sm:text-base text-gray-600 hover:text-gray-800 hover:underline underline-offset-4 decoration-gray-300 hover:decoration-gray-400 transition-colors"
+            rel="nofollow"
+            title="Admin Dashboard"
+          >
+            Admin
+          </Link>
         </div>
 
         {/* Right: Contact Us - Responsive */}
