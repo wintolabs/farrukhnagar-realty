@@ -1,7 +1,5 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 export default function Hero() {
@@ -72,10 +70,10 @@ export default function Hero() {
               </p>
 
               {/* Email Input - Premium Responsive Design */}
-              <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
-                <form className="space-y-4 sm:space-y-0">
-                  {/* Mobile-First Stacked Layout */}
-                  <div className="sm:hidden space-y-3">
+              {/* <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl"> */}
+              {/* <form className="space-y-4 sm:space-y-0"> */}
+              {/* Mobile-First Stacked Layout */}
+              {/* <div className="sm:hidden space-y-3">
                     <Input
                       type="email"
                       placeholder="Enter your email address"
@@ -85,10 +83,10 @@ export default function Hero() {
                     <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 font-semibold rounded-2xl transition-colors text-base shadow-lg">
                       Get a Quote
                     </Button>
-                  </div>
+                  </div> */}
 
-                  {/* Desktop/Tablet Inline Layout */}
-                  <div className="hidden sm:flex bg-white rounded-full border border-gray-200 shadow-lg overflow-hidden h-12 lg:h-14">
+              {/* Desktop/Tablet Inline Layout */}
+              {/* <div className="hidden sm:flex bg-white rounded-full border border-gray-200 shadow-lg overflow-hidden h-12 lg:h-14">
                     <Input
                       type="email"
                       placeholder="Enter your email address"
@@ -99,8 +97,8 @@ export default function Hero() {
                       Get a Quote
                     </Button>
                   </div>
-                </form>
-              </div>
+                </form> */}
+              {/* </div> */}
             </div>
 
             {/* RIGHT: Building Image Section - Responsive */}
